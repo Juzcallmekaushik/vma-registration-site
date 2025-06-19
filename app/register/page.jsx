@@ -135,7 +135,7 @@ export default function Home() {
 
     if (showForm) {
         return (
-            <div className="relative min-h-fit h-fit md:h-full bg-black/70 flex items-center justify-center">
+            <div className="relative min-h-screen h-screen md:h-300px bg-black/70 flex items-center justify-center">
             <button
                 type="button"
                 onClick={() => setShowForm(false)}
