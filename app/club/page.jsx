@@ -67,7 +67,7 @@ export default function ClubHomePage() {
     const baseUrl =
         typeof window !== "undefined" && window.location.hostname === "localhost"
             ? "http://localhost:3000"
-            : "https://live.kaushikreddy.me";
+            : "https://www.visualmartialarts.live";
 
     const handleSignOut = async () => {
         await signOut({ redirect: false });
