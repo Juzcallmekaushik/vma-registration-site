@@ -1,5 +1,5 @@
 "use client";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -63,6 +63,16 @@ export default function ClubHomePage() {
         );
     }
 
+    const baseUrl =
+        typeof window !== "undefined" && window.location.hostname === "localhost"
+            ? "http://localhost:3000"
+            : "https://live.kaushikreddy.me";
+
+    const handleSignOut = async () => {
+        await signOut({ redirect: false });
+        router.replace("/register");
+    };
+
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white">
             <nav className="w-full bg-[#080808] px-4 py-2 flex items-center justify-between border-b border-gray-800" style={{ height: "40px" }}>
@@ -85,7 +95,7 @@ export default function ClubHomePage() {
                     <span className="text-sm text-gray-200">{club?.name}</span>
                     <button
                         className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs font-bold"
-                        onClick={() => router.push("/api/auth/signout")}
+                        onClick={handleSignOut}
                     >
                         Sign Out
                     </button>
@@ -96,13 +106,13 @@ export default function ClubHomePage() {
                     Club ID: {club?.club_id}
                 </div>
                 <div className="bg-white mr-5 text-black rounded px-3 py-2 font-semibold text-[12px] shadow">
-                    Participant Join Link: <a
-                        href={`http://localhost:3000/${club?.club_id?.toLowerCase()}/join`}
+                    Competitor Invite Link: <a
+                        href={`${baseUrl}/${club?.club_id?.toLowerCase()}/join`}
                         className="hover:underline"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        http://localhost:3000/{club?.club_id?.toLowerCase()}/join
+                        {baseUrl}/{club?.club_id?.toLowerCase()}/join
                     </a>
                 </div>
             </div>
@@ -159,8 +169,26 @@ export default function ClubHomePage() {
                 <div><span className="font-bold">Kup:</span> Kup 10th to Kup 1st (Colour Belt Only)</div>
                 <div><span className="font-bold">Deadline:</span> -</div>
                 <div>
-                    <span className="font-bold">Contact:</span> +60 16-212 5302&nbsp;or&nbsp;
-                    <a href="mailto:visualmartialarts@gmail.com" className="underline hover:text-blue-700">visualmartialarts@gmail.com</a>
+                    <span className="font-bold">Contact:</span>
+                    <a
+                        href="https://api.whatsapp.com/send/?phone=%2B60162125302&text&type=phone_number&app_absent=0"
+                        className="hover:text-green-700 ml-1"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        +60 16-212 5302
+                    </a>
+                    ,&nbsp;
+                    <a
+                        href="https://api.whatsapp.com/send/?phone=%2B60192244846&text&type=phone_number"
+                        className="hover:text-green-700"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        +60 19-224 4846
+                    </a>
+                    &nbsp;or&nbsp;
+                    <a href="mailto:visualmartialarts@gmail.com" className="hover:text-green-700">visualmartialarts@gmail.com</a>
                 </div>
             </div>
         </div>
