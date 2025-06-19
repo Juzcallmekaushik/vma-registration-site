@@ -149,7 +149,7 @@ export default function Home() {
             </button>
             <form
                 onSubmit={handleSubmit}
-                className="relative bg-white border border-black rounded-lg shadow-lg p-4 sm:p-6 w-[95vw] max-w-3xl flex flex-col items-center"
+                className="hidden md:relative md:bg-white md:border md:border-black md:rounded-lg md:shadow-lg md:p-4 md:sm:p-6 md:w-[95vw] md:max-w-3xl md:flex md:flex-col md:items-center"
                 style={{ maxHeight: "95vh", minHeight: "90vh" }}
             >
                 <div className="flex flex-col md:flex-row w-full gap-6 overflow-y-auto">
