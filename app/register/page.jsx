@@ -207,7 +207,7 @@ export default function Home() {
                     />
                 </div>
                 <div className="hidden md:block w-px bg-black mx-2 md:order-2" />
-                <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
+                <div className="flex-1 flex flex-col gap-1 mt-3 md:mt-0 order-2 md:order-3">
                     <h2 className="text-lg font-extrabold text-black mb-1 text-center md:text-left">Club Details</h2>
                     <label className="text-[12px] text-black font-semibold">Club Name</label>
                     <input
