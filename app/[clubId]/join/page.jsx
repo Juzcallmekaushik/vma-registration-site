@@ -78,7 +78,7 @@ export default function JoinClubPage({ params }) {
             }
 
             const { data: existing, error: selectError } = await supabase
-                .from("club_data")
+                .from("competitors")
                 .select("club_id")
                 .eq("club_id", clubId)
                 .eq("id_number", form.idNumber)
@@ -91,7 +91,7 @@ export default function JoinClubPage({ params }) {
                 return;
             }
 
-            const { error: insertError } = await supabase.from("club_data").insert([
+            const { error: insertError } = await supabase.from("competitors").insert([
                 {
                     club_id: clubId,
                     full_name: form.fullName,
