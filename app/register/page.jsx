@@ -221,7 +221,6 @@ export default function Home() {
                     pattern=".{2,}"
                     title="Club name must be at least 2 characters"
                     />
-                    <span className="text-xs text-gray-500 mb-1">* Club name must be unique</span>
                     <label className="text-[12px] text-black font-semibold">Club Email</label>
                     <input
                     type="email"
