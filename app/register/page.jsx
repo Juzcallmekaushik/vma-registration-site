@@ -123,7 +123,7 @@ export default function Home() {
         return (
             <div className="flex items-center justify-center min-h-screen bg-black">
                 <Image
-                    src="/logos/vmalogo.png"
+                    src="/logos/VMALogo.png"
                     alt="Loading"
                     width={80}
                     height={80}
@@ -295,14 +295,14 @@ export default function Home() {
             </div>
             <div className="fixed top-3 left-3 flex flex-row items-end gap-2 z-20">
                 <Image
-                    src="/logos/botaniclogo.png"
+                    src="/logos/BotanicLogo.png"
                     alt="Botanic Resort Club Logo"
                     width={50}
                     height={50}
                     className="rounded-full shadow-lg p-1"
                 />
                 <Image
-                    src="/logos/vmalogo.png"
+                    src="/logos/VMALogo.png"
                     alt="Visual Martial Arts Logo"
                     width={50}
                     height={50}

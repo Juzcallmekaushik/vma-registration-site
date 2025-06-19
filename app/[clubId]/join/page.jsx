@@ -77,9 +77,23 @@ export default function JoinClubPage({ params }) {
                 events = "";
             }
 
+            const { data: existing, error: selectError } = await supabase
+                .from("club_data")
+                .select("club_id")
+                .eq("club_id", clubId)
+                .eq("id_number", form.idNumber)
+                .maybeSingle();
+
+            if (selectError) throw selectError;
+            if (existing) {
+                setError("You have already registered for this club with this I/C or Passport No.");
+                setSubmitting(false);
+                return;
+            }
+
             const { error: insertError } = await supabase.from("club_data").insert([
                 {
-                    club_id: params.clubId,
+                    club_id: clubId,
                     full_name: form.fullName,
                     date_of_birth: form.dob,
                     catagory: category,
@@ -90,13 +104,18 @@ export default function JoinClubPage({ params }) {
                     kup: form.kupDan,
                     state: form.stateCountry,
                     events,
+                    club_name: form.schoolClub,
                 },
             ]);
 
             if (insertError) throw insertError;
             setSubmitted(true);
         } catch (err) {
-            setError(`Submission failed. Please try again.`);
+            setError(
+                err.code === "23505"
+                    ? "You have already registered for this club with this I/C or Passport No."
+                    : `Submission failed. Please try again. ${err.message}`
+            );
         }
         setSubmitting(false);
     };
@@ -206,6 +225,16 @@ export default function JoinClubPage({ params }) {
                             name="kupDan"
                             placeholder="1st Kup"
                             value={form.kupDan}
+                            onChange={handleChange}
+                            required
+                            className="w-full text-black p-2 border border-black rounded"
+                        />
+                        <label className="text-[12px] text-black font-semibold">School/Club</label>
+                        <input
+                            type="text"
+                            name="schoolClub"
+                            placeholder="Visual Martial Arts"
+                            value={form.schoolClub}
                             onChange={handleChange}
                             required
                             className="w-full text-black p-2 border border-black rounded"

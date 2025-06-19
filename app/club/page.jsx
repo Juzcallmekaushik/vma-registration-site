@@ -53,7 +53,7 @@ export default function ClubHomePage() {
         return (
             <div className="flex items-center justify-center min-h-screen bg-black">
                 <Image
-                    src="/logos/vmalogo.png"
+                    src="/logos/VMALogo.png"
                     alt="Loading"
                     width={80}
                     height={80}
@@ -97,12 +97,12 @@ export default function ClubHomePage() {
                 </div>
                 <div className="bg-white mr-5 text-black rounded px-3 py-2 font-semibold text-[12px] shadow">
                     Participant Join Link: <a
-                        href={`https://live.kaushikreddy.me/${club?.club_id?.toLowerCase()}/join`}
+                        href={`http://localhost:3000/${club?.club_id?.toLowerCase()}/join`}
                         className="hover:underline"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        https://live.kaushikreddy.me/{club?.club_id?.toLowerCase()}/join
+                        http://localhost:3000/{club?.club_id?.toLowerCase()}/join
                     </a>
                 </div>
             </div>

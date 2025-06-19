@@ -62,7 +62,7 @@ export default function ClubCompetitorsPage() {
         return (
             <div className="flex items-center justify-center min-h-screen bg-black">
                 <Image
-                    src="/logos/vmalogo.png"
+                    src="/logos/VMALogo.png"
                     alt="Loading"
                     width={80}
                     height={80}
