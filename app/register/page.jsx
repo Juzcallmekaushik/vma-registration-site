@@ -139,7 +139,7 @@ export default function Home() {
             <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="fixed top-2 left-2 z-30 flex text-sm items-center text-white p-2 shadow-lg"
+                className="fixed top-6 left-2 md:top-2 md:left-2 z-30 flex text-sm items-center text-white p-2 shadow-lg"
                 aria-label="Back"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
