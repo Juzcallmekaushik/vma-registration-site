@@ -103,6 +103,7 @@ export default function ClubCompetitorsPage({ params }) {
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">Kup</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">State</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">Events</th>
+                        <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">FEE</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-black">Edit</th>
                     </tr>
                 </thead>
@@ -119,6 +120,7 @@ export default function ClubCompetitorsPage({ params }) {
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.kup}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.state}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.events}</td>
+                            <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.fee}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-white">
                                 <button
                                     type="button"

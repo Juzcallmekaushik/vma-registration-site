@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 
 export default function JoinClubPage({ params }) {
-    const { clubId } = React.use(params);
+    const resolvedParams = React.use(params);
+    const clubId = resolvedParams.clubId;
     const [form, setForm] = useState({
         fullName: "",
         dob: "",
@@ -13,6 +14,8 @@ export default function JoinClubPage({ params }) {
         kupDan: "",
         stateCountry: "",
         schoolClub: "",
+        brcmember: "",
+        fee: "",
     });
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState("");
@@ -41,6 +44,21 @@ export default function JoinClubPage({ params }) {
         return null;
     };
 
+    const calculateFee = (form) => {
+        let fee = 0;
+        const isBrc = form.brcmember && form.brcmember.trim() !== "";
+        const hasPattern = form.pattern;
+        const hasSparring = form.sparring;
+        const hasTeam = form.teamDemonstration;
+
+        if (hasTeam) {
+            fee = isBrc ? 100 : 110;
+        } else if ((hasPattern && hasSparring) || hasPattern || hasSparring) {
+            fee = isBrc ? 90 : 100;
+        }
+        return fee;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -48,13 +66,13 @@ export default function JoinClubPage({ params }) {
 
         const age = getAge(form.dob);
         const category = getCategory(age);
-        if (age > 17) {
-            setError("Age above 17 is not allowed for this event.");
+        if (age > 16) {
+            setError("Age above 16 is not allowed for this event.");
             setSubmitting(false);
             return;
         }
         if (!category) {
-            setError("Age must be between 4 and 16 years old.");
+            setError("Age must be between 4 and 15 years old.");
             setSubmitting(false);
             return;
         }
@@ -75,6 +93,39 @@ export default function JoinClubPage({ params }) {
                 events = "sparring";
             } else {
                 events = "";
+            }
+            if (form.teamDemonstration) {
+                events = events ? `${events} & team demonstration` : "team demonstration";
+            }
+
+            const fee = calculateFee(form);
+
+            const { data: feeData, error: feeSelectError } = await supabase
+                .from("fees")
+                .select("fee")
+                .eq("club_id", clubId)
+                .maybeSingle();
+
+            if (feeSelectError) {
+                setError(`Failed to fetch current fee: ${feeSelectError.message}`);
+                setSubmitting(false);
+                return;
+            }
+
+            const currentFee = feeData?.fee || 0;
+            const totalFee = currentFee + fee;
+
+            const { error: feeUpdateError } = await supabase
+                .from("fees")
+                .upsert(
+                    [{ club_id: clubId, fee: totalFee }],
+                    { onConflict: ["club_id"] }
+                );
+
+            if (feeUpdateError) {
+                setError(`Failed to update fee in fees table: ${feeUpdateError.message}`);
+                setSubmitting(false);
+                return;
             }
 
             const { data: existing, error: selectError } = await supabase
@@ -105,6 +156,8 @@ export default function JoinClubPage({ params }) {
                     state: form.stateCountry,
                     events,
                     club_name: form.schoolClub,
+                    brcmember: form.brcmember,
+                    fee: fee,
                 },
             ]);
 
@@ -206,8 +259,16 @@ export default function JoinClubPage({ params }) {
                             required
                             className="w-full text-black p-2 border border-black rounded"
                         />
+                        <label className="text-[12px] text-black font-semibold">Botanic Club Membership ID (Optional)</label>
+                        <input
+                            type="text"
+                            name="brcmember"
+                            placeholder="B01234-0"
+                            value={form.brcmember}
+                            onChange={handleChange}
+                            className="w-full text-black p-2 border border-black rounded"
+                        />
                     </div>
-                    <div className="hidden md:block w-px bg-black md:order-2" />
                     <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
                         <label className="text-[12px] text-black font-semibold">Weight (KG)</label>
                         <input
@@ -250,7 +311,7 @@ export default function JoinClubPage({ params }) {
                             className="w-full text-black p-2 border border-black rounded"
                         />
                         <div className="flex flex-col gap-2 ">
-                            <label className="text-[12px] text-black font-bold">Events</label>
+                            <label className="text-[12px] text-black mt-3 font-bold">Events</label>
                             <div className="flex gap-4">
                                 <label className="flex items-center text-[12px] text-black gap-2">
                                     <input
@@ -271,6 +332,16 @@ export default function JoinClubPage({ params }) {
                                         className="accent-black"
                                     />
                                     Sparring
+                                </label>
+                                <label className="flex items-center text-[12px] text-black gap-2">
+                                    <input
+                                        type="checkbox"
+                                        name="Team Demonstration"
+                                        checked={form.teamDemonstration || false}
+                                        onChange={e => setForm({ ...form, teamDemonstration: e.target.checked })}
+                                        className="accent-black"
+                                    />
+                                    Team Demonstration
                                 </label>
                             </div>
                         </div>
