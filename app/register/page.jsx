@@ -110,7 +110,7 @@ export default function Home() {
 
             const clubId = await generateClubId();
             const clubData = {
-                club_id: clubId,
+                club_id: clubId.toLowerCase(),
                 name: form.club,
                 email: form.clubEmail,
                 phone_number: form.phone,
