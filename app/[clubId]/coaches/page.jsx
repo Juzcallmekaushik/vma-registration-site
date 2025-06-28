@@ -235,6 +235,26 @@ export default function ClubCoachesPage({ params }) {
                                         alert('Insert failed!');
                                     }
                                 }
+
+                                const res = await fetch("/api/add-coaches", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        fullName: editValues.full_name,
+                                        dob: editValues.date_of_birth,
+                                        gender: editValues.gender,
+                                        phoneNumber: editValues.phone_number,
+                                        idNumber: editValues.id_number,
+                                        tagType: editValues.tag_type,
+                                        schoolClub: editValues.club_name,
+                                    }),
+                                });
+
+                                if (!res.ok) {
+                                    console.error("Error saving data to Google Sheets:", res.statusText);
+                                    setSubmitting(false);
+                                    return;
+                                }
                                 setSubmitting(false);
                             }}
                         >
