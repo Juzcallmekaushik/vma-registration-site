@@ -26,7 +26,8 @@ export async function POST(req) {
       );
     }
 
-    await sheets.spreadsheets.batchUpdate({
+    // Duplicate Sheet1 and unhide the new sheet
+    const duplicateRes = await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
         requests: [
@@ -34,6 +35,25 @@ export async function POST(req) {
             duplicateSheet: {
               sourceSheetId: sheet1.properties.sheetId,
               newSheetName: clubName,
+            },
+          },
+        ],
+      },
+    });
+
+    const newSheetId = duplicateRes.data.replies[0].duplicateSheet.properties.sheetId;
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            updateSheetProperties: {
+              properties: {
+                sheetId: newSheetId,
+                hidden: false,
+              },
+              fields: "hidden",
             },
           },
         ],
