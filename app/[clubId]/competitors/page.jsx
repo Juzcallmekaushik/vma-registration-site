@@ -89,7 +89,7 @@ export default function ClubCompetitorsPage({ params }) {
                 </svg>
                 <span className="hidden sm:inline ml-1">Back</span>
             </button>
-            <h1 className="text-2xl font-bold mb-4 text-center">Club Competitors</h1>
+            <h1 className="text-2xl font-bold mb-4 text-center">Competitors</h1>
             <table className="min-w-full border border-gray-300">
                 <thead>
                     <tr className="bg-gray-100 text-black">

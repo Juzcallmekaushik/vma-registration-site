@@ -84,7 +84,7 @@ export default function ClubCoachesPage({ params }) {
                 </svg>
                 <span className="hidden sm:inline ml-1">Back</span>
             </button>
-            <h1 className="text-2xl font-bold mb-4 text-center">Club Coaches</h1>
+            <h1 className="text-2xl font-bold mb-4 text-center">Coaches & Team Managers</h1>
             <table className="min-w-full border border-gray-300">
                 <thead>
                     <tr className="bg-gray-100 text-black">
@@ -130,29 +130,32 @@ export default function ClubCoachesPage({ params }) {
                 </tbody>
             </table>
             <div className="flex justify-center mt-4">
-                {(teamManagerCount < 1 || coachCount < 4) && (
-                    <button
-                        type="button"
-                        className="flex items-center gap-2 font-bold py-2 px-4 rounded-full shadow bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => {
-                            setEditCoach({});
-                            setEditValues(emptyCoach);
-                        }}
-                        aria-label="Add Coach"
-                        title={
-                            teamManagerCount >= 1 && coachCount >= 4
-                                ? "Maximum Team Manager and Coaches reached"
-                                : teamManagerCount >= 1
-                                ? "Maximum Team Manager reached"
-                                : coachCount >= 4
-                                ? "Maximum Coaches reached"
-                                : ""
-                        }
-                    >
-                        <span className="text-xl leading-none">+</span>
-                        <span className="hidden sm:inline text-sm">Add Coach</span>
-                    </button>
-                )}
+                <button
+                    type="button"
+                    className={`flex items-center gap-2 font-bold py-2 px-4 rounded-full shadow ${
+                        (teamManagerCount >= 1 && coachCount >= 3) || coachCount >= 4
+                            ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700 text-white"
+                    }`}
+                    onClick={() => {
+                        setEditCoach({});
+                        setEditValues(emptyCoach);
+                    }}
+                    aria-label="Add Coach"
+                    title={
+                        teamManagerCount >= 1 && coachCount >= 3
+                            ? "Maximum Team Manager and Coaches reached"
+                            : teamManagerCount >= 1
+                            ? "Maximum Team Manager reached"
+                            : coachCount >= 3
+                            ? "Maximum Coaches reached"
+                            : ""
+                    }
+                    disabled={teamManagerCount >= 1 && coachCount >= 3 || coachCount >= 4}
+                >
+                    <span className="text-xl leading-none">+</span>
+                    <span className="hidden sm:inline text-sm">Add Coach</span>
+                </button>
             </div>
 
             {editCoach && (
@@ -177,12 +180,12 @@ export default function ClubCoachesPage({ params }) {
 
                                 if (
                                     (!editCoach?.club_id && editValues.tag_type === "Team Manager" && teamManagerCount >= 1) ||
-                                    (!editCoach?.club_id && editValues.tag_type === "Coach" && coachCount >= 4)
+                                    (!editCoach?.club_id && editValues.tag_type === "Coach" && coachCount >= 3)
                                 ) {
                                     alert(
                                         editValues.tag_type === "Team Manager"
                                             ? "Only 1 Team Manager allowed per team."
-                                            : "Maximum 4 Coaches allowed per team."
+                                            : "Maximum 3 Coaches allowed per team."
                                     );
                                     setSubmitting(false);
                                     return;

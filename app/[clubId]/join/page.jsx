@@ -12,7 +12,6 @@ export default function JoinClubPage({ params }) {
         height: "",
         weight: "",
         kupDan: "",
-        stateCountry: "",
         schoolClub: "",
         brcmember: "",
         fee: "",
@@ -49,12 +48,9 @@ export default function JoinClubPage({ params }) {
         const isBrc = form.brcmember && form.brcmember.trim() !== "";
         const hasPattern = form.pattern;
         const hasSparring = form.sparring;
-        const hasTeam = form.teamDemonstration;
 
-        if (hasTeam) {
+        if ((hasPattern && hasSparring) || hasPattern || hasSparring) {
             fee = isBrc ? 100 : 110;
-        } else if ((hasPattern && hasSparring) || hasPattern || hasSparring) {
-            fee = isBrc ? 90 : 100;
         }
         return fee;
     };
@@ -93,9 +89,6 @@ export default function JoinClubPage({ params }) {
                 events = "sparring";
             } else {
                 events = "";
-            }
-            if (form.teamDemonstration) {
-                events = events ? `${events} & team demonstration` : "team demonstration";
             }
 
             const fee = calculateFee(form);
@@ -153,13 +146,34 @@ export default function JoinClubPage({ params }) {
                     height: form.height,
                     weight: form.weight,
                     kup: form.kupDan,
-                    state: form.stateCountry,
                     events,
                     club_name: form.schoolClub,
                     brcmember: form.brcmember,
                     fee: fee,
                 },
             ]);
+            const res = await fetch("/api/add-competitors", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fullName: form.fullName,
+                    idNumber: form.idNumber,
+                    gender: form.gender,
+                    dob: form.dob,
+                    category,
+                    height: form.height,
+                    weight: form.weight,
+                    kupDan: form.kupDan,
+                    events,
+                    schoolClub: form.schoolClub,
+                }),
+            });
+
+            if (!res.ok) {
+                console.error("Error saving data to Google Sheets:", res.statusText);
+                setSubmitting(false);
+                return;
+            }
 
             if (insertError) throw insertError;
             setSubmitted(true);
@@ -259,15 +273,6 @@ export default function JoinClubPage({ params }) {
                             required
                             className="w-full text-black p-2 border border-black rounded"
                         />
-                        <label className="text-[12px] text-black font-semibold">Botanic Club Membership ID (Optional)</label>
-                        <input
-                            type="text"
-                            name="brcmember"
-                            placeholder="B01234-0"
-                            value={form.brcmember}
-                            onChange={handleChange}
-                            className="w-full text-black p-2 border border-black rounded"
-                        />
                     </div>
                     <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
                         <label className="text-[12px] text-black font-semibold">Weight (KG)</label>
@@ -281,15 +286,25 @@ export default function JoinClubPage({ params }) {
                             className="w-full text-black p-2 border border-black rounded"
                         />
                         <label className="text-[12px] text-black font-semibold">Kup</label>
-                        <input
-                            type="text"
+                        <select
                             name="kupDan"
-                            placeholder="1st Kup"
                             value={form.kupDan}
                             onChange={handleChange}
                             required
                             className="w-full text-black p-2 border border-black rounded"
-                        />
+                        >
+                            <option value="" disabled>Select Kup</option>
+                            <option value="1st Kup">1st Kup (Red-Black)</option>
+                            <option value="2nd Kup">2nd Kup (Red)</option>
+                            <option value="3rd Kup">3rd Kup (Blue-Red)</option>
+                            <option value="4th Kup">4th Kup (Blue)</option>
+                            <option value="5th Kup">5th Kup (Green-Blue)</option>
+                            <option value="6th Kup">6th Kup (Green)</option>
+                            <option value="7th Kup">7th Kup (Yellow-Green)</option>
+                            <option value="8th Kup">8th Kup (Yellow)</option>
+                            <option value="9th Kup">9th Kup (White-Yellow)</option>
+                            <option value="10th Kup">10th Kup (White)</option>
+                        </select>
                         <label className="text-[12px] text-black font-semibold">School/Club</label>
                         <input
                             type="text"
@@ -300,18 +315,17 @@ export default function JoinClubPage({ params }) {
                             required
                             className="w-full text-black p-2 border border-black rounded"
                         />
-                        <label className="text-[12px] text-black font-semibold">State / Country</label>
+                        <label className="text-[12px] text-black font-semibold">Botanic Club Membership ID (Optional)</label>
                         <input
                             type="text"
-                            name="stateCountry"
-                            placeholder="Selangor, Malaysia"
-                            value={form.stateCountry}
+                            name="brcmember"
+                            placeholder="B01234-0"
+                            value={form.brcmember}
                             onChange={handleChange}
-                            required
                             className="w-full text-black p-2 border border-black rounded"
                         />
                         <div className="flex flex-col gap-2 ">
-                            <label className="text-[12px] text-black mt-3 font-bold">Events</label>
+                            <label className="text-[12px] text-black font-bold">Events</label>
                             <div className="flex gap-4">
                                 <label className="flex items-center text-[12px] text-black gap-2">
                                     <input
@@ -332,16 +346,6 @@ export default function JoinClubPage({ params }) {
                                         className="accent-black"
                                     />
                                     Sparring
-                                </label>
-                                <label className="flex items-center text-[12px] text-black gap-2">
-                                    <input
-                                        type="checkbox"
-                                        name="Team Demonstration"
-                                        checked={form.teamDemonstration || false}
-                                        onChange={e => setForm({ ...form, teamDemonstration: e.target.checked })}
-                                        className="accent-black"
-                                    />
-                                    Team Demonstration
                                 </label>
                             </div>
                         </div>

@@ -84,14 +84,26 @@ export default function Home() {
         if (submitting) return;
         setSubmitting(true);
         try {
-            const { data: existing, error: checkError } = await supabase
+            const { data: existingClub, error: checkError } = await supabase
                 .from("clubs")
-                .select("id")
-                .or(`user_email.eq.${form.email},name.eq.${form.club}`)
+                .select("user_email")
+                .eq("name", form.club)
                 .single();
 
-            if (existing) {
-                alert("A club with this name or user email is already registered.");
+            if (existingClub) {
+                alert(`Club has already registered. Please use the email: ${existingClub.user_email} to login.`);
+                setSubmitting(false);
+                return;
+            }
+
+            const { data: existingEmail } = await supabase
+                .from("clubs")
+                .select("id")
+                .eq("user_email", form.email)
+                .single();
+
+            if (existingEmail) {
+                alert("A club with this user email is already registered.");
                 setSubmitting(false);
                 return;
             }
@@ -109,6 +121,11 @@ export default function Home() {
             };
             const { error } = await supabase.from("clubs").insert([clubData]);
             if (!error) {
+                await fetch('/api/create-sheet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clubName: form.club }),
+                });
                 router.replace(`/club`);
             } else {
                 console.error("Error registering club:", error, clubData);

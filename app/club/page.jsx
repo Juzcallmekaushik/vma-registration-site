@@ -137,6 +137,12 @@ export default function ClubHomePage() {
                     COACHES
                 </a>
                 <a
+                    href={`/${club?.club_id?.toLowerCase()}/team-demonstration`}
+                    className="flex-1 bg-gray-200 rounded-lg flex items-center justify-center min-h-[120px] font-bold text-sm text-black text-center hover:bg-gray-300 transition"
+                >
+                    TEAM DEMONSTRATION
+                </a>                
+                <a
                     href={`/${club?.club_id?.toLowerCase()}/payment`}
                     className="flex-1 bg-gray-200 rounded-lg flex items-center justify-center min-h-[120px] font-bold text-sm text-black text-center hover:bg-gray-300 transition"
                 >
@@ -152,11 +158,10 @@ export default function ClubHomePage() {
                     <span className="font-bold">Venue:</span> Botanic Resort Club (Klang) - 1, Jalan Ambang Botanic, Bandar Botanic, 41200, Selangor
                 </div>
                 <div><span className="font-bold">Gender:</span> Male & Female</div>
-                <div><span className="font-bold">Age Group:</span> 4 Years old to 16 Years old Only</div>
-                <div><span className="font-bold">Events:</span> Individual Pattern & Sparring Only</div>
-                <div><span className="font-bold">Fee:</span> -</div>
+                <div><span className="font-bold">Age Group:</span> 4 Years old to 15 Years old Only</div>
+                <div><span className="font-bold">Events:</span> Team Demonstration, Individual Pattern & Sparring</div>
                 <div><span className="font-bold">Kup:</span> Kup 10th to Kup 1st (Colour Belt Only)</div>
-                <div><span className="font-bold">Deadline:</span> -</div>
+                <div><span className="font-bold">Deadline:</span> 31 July 2025</div>
                 <div>
                     <span className="font-bold">Contact:</span>
                     <a
