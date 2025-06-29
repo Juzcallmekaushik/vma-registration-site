@@ -82,11 +82,11 @@ export default function JoinClubPage({ params }) {
 
             let events = "";
             if (form.pattern && form.sparring) {
-                events = "pattern & sparring";
+                events = "pattern, sparring ";
             } else if (form.pattern) {
-                events = "pattern";
+                events = "pattern ";
             } else if (form.sparring) {
-                events = "sparring";
+                events = "sparring ";
             } else {
                 events = "";
             }
@@ -152,7 +152,7 @@ export default function JoinClubPage({ params }) {
                     fee: fee,
                 },
             ]);
-            const res = await fetch("/api/add-competitors", {
+            const res = await fetch("/api/add/add-competitors", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

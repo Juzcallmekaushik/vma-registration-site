@@ -25,6 +25,11 @@ const calculateDemoFee = (form) => {
     return isBrc ? 110 : 120;
 };
 
+const getTeamFeeForTable = (form) => {
+    const isBrc = form.brc_member && form.brc_member.trim() !== "";
+    return isBrc ? 10 : 10;
+};
+
 export default function TeamDemoPage({ params }) {
     const router = useRouter();
     const { clubId } = React.use(params);
@@ -33,6 +38,8 @@ export default function TeamDemoPage({ params }) {
     const [editMember, setEditMember] = useState(null);
     const [editValues, setEditValues] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [showSelectModal, setShowSelectModal] = useState(false);
+    const [clubParticipants, setClubParticipants] = useState([]);
 
     useEffect(() => {
         async function fetchTeamData() {
@@ -123,7 +130,7 @@ export default function TeamDemoPage({ params }) {
                     ))}
                     {teamData.length === 0 && (
                         <tr>
-                            <td colSpan={6} className="py-4 text-center text-gray-500 border-b border-gray-300">
+                            <td colSpan={7} className="py-4 text-center text-gray-500 border-b border-gray-300">
                                 No team members found.
                             </td>
                         </tr>
@@ -190,126 +197,101 @@ export default function TeamDemoPage({ params }) {
                                         setSubmitting(false);
                                         return;
                                     }
-
-                                    const { data: competitor, error: compError } = await supabase
-                                        .from('competitors')
-                                        .select('*')
-                                        .eq('club_id', clubId)
-                                        .eq('id_number', editValues.id_number)
-                                        .single();
-
-                                    if (!competitor) {
-                                        alert("PARTICIPANT MUST BE A PART OF ATLEAST 1 INDIVIDUAL EVENT TO TAKE PART IN TEAM DEMONSTRATION.");
-                                        setSubmitting(false);
-                                        return;
-                                    }
                                 }
 
-                                if (editMember && editMember.club_id) {
-                                    const { club_id, ...updateData } = editValues;
-                                    const { error } = await supabase
-                                        .from('demo')
-                                        .update(updateData)
-                                        .eq('club_id', club_id)
-                                        .eq('id_number', editMember.id_number);
-                                    if (!error) {
-                                        const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
-                                        setTeamData(data || []);
-                                        setEditMember(null);
-                                    } else {
-                                        alert('Update failed!');
-                                    }
+                                const { data: clubData, error: clubError } = await supabase
+                                    .from('clubs')
+                                    .select('name')
+                                    .eq('club_id', clubId)
+                                    .single();
+
+                                if (clubError || !clubData) {
+                                    alert('Could not fetch club name.');
+                                    setSubmitting(false);
+                                    return;
+                                }
+
+                                const clubName = clubData.name;
+
+                                const { data: competitor } = await supabase
+                                    .from('competitors')
+                                    .select('brcmember, events, fee')
+                                    .eq('club_id', clubId)
+                                    .eq('id_number', editValues.id_number)
+                                    .single();
+
+                                let displayFee;
+                                let brcMember = "";
+                                const teamFee = 10;
+
+                                if (competitor) {
+                                    brcMember = competitor.brcmember || "";
+                                    displayFee = (Number(competitor.fee) || 0) + teamFee;
+                                }
+
+                                const insertData = {
+                                    ...editValues,
+                                    club_id: clubId,
+                                    club_name: clubName,
+                                    fee: displayFee,
+                                    brc_member: brcMember,
+                                };
+                                const { error } = await supabase
+                                    .from('demo')
+                                    .insert([insertData]);
+                                if (!error) {
+                                    const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
+                                    setTeamData(data || []);
+                                    setEditMember(null);
                                 } else {
-                                    const { data: clubData, error: clubError } = await supabase
-                                        .from('clubs')
-                                        .select('name')
-                                        .eq('club_id', clubId)
-                                        .single();
-
-                                    if (clubError || !clubData) {
-                                        alert('Could not fetch club name.');
-                                        setSubmitting(false);
-                                        return;
-                                    }
-
-                                    const clubName = clubData.name;
-
-                                    const insertData = {
-                                        ...editValues,
-                                        club_id: clubId,
-                                        club_name: clubName,
-                                        fee: calculateDemoFee(editValues),
-                                    };
-                                    const { error } = await supabase
-                                        .from('demo')
-                                        .insert([insertData]);
-                                    if (!error) {
-                                        const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
-                                        setTeamData(data || []);
-                                        setEditMember(null);
-                                    } else {
-                                        alert(`Insert failed! ${error.message}`);
-                                    }
+                                    alert(`Insert failed! ${error.message}`);
+                                    setSubmitting(false);
+                                    return;
                                 }
 
-                                const fee = calculateDemoFee(editValues);
-
-                                const { data: feeData, error: feeSelectError } = await supabase
+                                const { data: feeData } = await supabase
                                     .from("fees")
                                     .select("fee")
                                     .eq("club_id", clubId)
                                     .maybeSingle();
 
-                                if (feeSelectError) {
-                                    setError(`Failed to fetch current fee: ${feeSelectError.message}`);
-                                    setSubmitting(false);
-                                    return;
-                                }
-
                                 const currentFee = feeData?.fee || 0;
-                                const totalFee = currentFee + fee;
+                                const newTotalFee = currentFee + teamFee;
 
-                                const { error: feeUpdateError } = await supabase
+                                await supabase
                                     .from("fees")
                                     .upsert(
-                                        [{ club_id: clubId, fee: totalFee }],
+                                        [{ club_id: clubId, fee: newTotalFee }],
                                         { onConflict: ["club_id"] }
                                     );
 
-                                if (feeUpdateError) {
-                                    setError(`Failed to update fee in fees table: ${feeUpdateError.message}`);
-                                    setSubmitting(false);
-                                    return;
-                                }
-
-                                let clubNameValue = editValues.club_name;
-                                if (!clubNameValue) {
-                                    const { data: clubData } = await supabase
-                                        .from('clubs')
-                                        .select('name')
+                                if (competitor) {
+                                    await supabase
+                                        .from('competitors')
+                                        .update({
+                                            fee: displayFee,
+                                        })
                                         .eq('club_id', clubId)
-                                        .single();
-                                    clubNameValue = clubData?.name || "";
+                                        .eq('id_number', editValues.id_number);
                                 }
 
-                                const res = await fetch("/api/add-demo", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        name: editValues.name,
-                                        dob: editValues.date_of_birth,
-                                        gender: editValues.gender,
-                                        kup: editValues.kup,
-                                        idNumber: editValues.id_number,
-                                        schoolClub: clubNameValue,
-                                    }),
-                                });
-
-                                if (!res.ok) {
-                                    console.error("Error saving data to Google Sheets:", res.statusText);
-                                    setSubmitting(false);
-                                    return;
+                                try {
+                                    await fetch("/api/add/add-demo", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                            name: editValues.name,
+                                            dob: editValues.date_of_birth,
+                                            gender: editValues.gender,
+                                            kup: editValues.kup,
+                                            idNumber: editValues.id_number,
+                                            schoolClub: clubName,
+                                        }),
+                                    });
+                                } catch (err) {
+                                    console.error("Failed to send to /api/add-demo", err);
                                 }
+
                                 setSubmitting(false);
                             }}
                         >
@@ -377,15 +359,6 @@ export default function TeamDemoPage({ params }) {
                                         required
                                         disabled={editMember && editMember.club_id}
                                     />
-                                    <label className="text-[12px] text-black font-semibold">Botanic Club Membership ID (Optional)</label>
-                                    <input
-                                        type="text"
-                                        name="brc_member"
-                                        placeholder="B01234-0"
-                                        value={editValues.brc_member || ""}
-                                        onChange={handleChange}
-                                        className="w-full text-black p-2 border border-black rounded"
-                                    />
                                 </div>
                             </div>
                             <div className="w-full flex justify-center gap-4 mt-4">
@@ -406,11 +379,71 @@ export default function TeamDemoPage({ params }) {
                                         className="w-48 font-bold py-2 rounded bg-red-600 text-white hover:bg-red-700"
                                         onClick={async () => {
                                             setSubmitting(true);
+
+                                            // Get the member data for fee calculation
+                                            const { data: memberData } = await supabase
+                                                .from('demo')
+                                                .select('brc_member')
+                                                .eq('club_id', editMember.club_id)
+                                                .eq('id_number', editMember.id_number)
+                                                .single();
+
+                                            const teamFee = 10; // Fixed team fee
+
+                                            // Check if this person is also a competitor
+                                            const { data: competitor } = await supabase
+                                                .from('competitors')
+                                                .select('events, fee')
+                                                .eq('club_id', clubId)
+                                                .eq('id_number', editMember.id_number)
+                                                .single();
+
+                                            // Delete the team member
                                             await supabase
                                                 .from('demo')
                                                 .delete()
                                                 .eq('club_id', editMember.club_id)
                                                 .eq('id_number', editMember.id_number);
+
+                                            // Update the total fees
+                                            const { data: feeData } = await supabase
+                                                .from("fees")
+                                                .select("fee")
+                                                .eq("club_id", clubId)
+                                                .maybeSingle();
+
+                                            const currentFee = feeData?.fee || 0;
+                                            const newTotalFee = Math.max(currentFee - teamFee, 0);
+
+                                            await supabase
+                                                .from("fees")
+                                                .upsert(
+                                                    [{ club_id: clubId, fee: newTotalFee }],
+                                                    { onConflict: ["club_id"] }
+                                                );
+
+                                            // If they're also a competitor, update their events and fee
+                                            if (competitor) {
+                                                let newEvents = competitor.events || "";
+                                                // Remove "Team Demonstration" from their events
+                                                newEvents = newEvents
+                                                    .replace(/\s*&\s*Team Demonstration/g, "")
+                                                    .replace(/Team Demonstration\s*&\s*/g, "")
+                                                    .replace(/^Team Demonstration$/g, "")
+                                                    .trim();
+                                                
+                                                const updatedCompetitorFee = Math.max(competitor.fee - teamFee, 0);
+                                                
+                                                await supabase
+                                                    .from('competitors')
+                                                    .update({
+                                                        events: newEvents,
+                                                        fee: updatedCompetitorFee,
+                                                    })
+                                                    .eq('club_id', clubId)
+                                                    .eq('id_number', editMember.id_number);
+                                            }
+
                                             const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
                                             setTeamData(data || []);
                                             setEditMember(null);
@@ -425,6 +458,7 @@ export default function TeamDemoPage({ params }) {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

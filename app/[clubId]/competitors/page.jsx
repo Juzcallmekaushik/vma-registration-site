@@ -101,7 +101,6 @@ export default function ClubCompetitorsPage({ params }) {
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">Height</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">Weight</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">Kup</th>
-                        <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">State</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">Events</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-r border-black">FEE</th>
                         <th className="py-2 px-4 text-center text-[10px] border-b border-black">Edit</th>
@@ -109,7 +108,7 @@ export default function ClubCompetitorsPage({ params }) {
                 </thead>
                 <tbody>
                     {clubData.map((club) => (
-                        <tr key={club.club_id}>
+                        <tr key={club.id_number || `${club.club_id}-${club.full_name}-${club.date_of_birth}`}>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.full_name}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.date_of_birth}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.catagory}</td>
@@ -118,7 +117,6 @@ export default function ClubCompetitorsPage({ params }) {
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.height}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.weight}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.kup}</td>
-                            <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.state}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.events}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{club.fee}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-white">
@@ -135,7 +133,7 @@ export default function ClubCompetitorsPage({ params }) {
                     ))}
                     {clubData.length === 0 && (
                         <tr>
-                            <td colSpan={13} className="py-4 text-center text-gray-500 border-b border-gray-300">
+                            <td colSpan={12} className="py-4 text-center text-gray-500 border-b border-gray-300">
                                 No competitors found for this club.
                             </td>
                         </tr>
@@ -143,7 +141,6 @@ export default function ClubCompetitorsPage({ params }) {
                 </tbody>
             </table>
 
-            {/* Modal */}
             {editClub && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
                     <div className="relative bg-white border border-black rounded-lg shadow-lg p-4 sm:p-6 w-[95vw] max-w-3xl flex flex-col items-center"

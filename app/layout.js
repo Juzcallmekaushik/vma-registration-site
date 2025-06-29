@@ -22,6 +22,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body
         className={`${inter.variable} ${dmSans.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
         <Providers>{children}</Providers>
       </body>

@@ -236,7 +236,7 @@ export default function ClubCoachesPage({ params }) {
                                     }
                                 }
 
-                                const res = await fetch("/api/add-coaches", {
+                                const res = await fetch("/api/add/add-coaches", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
