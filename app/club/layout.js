@@ -2,7 +2,7 @@ export const metadata = {
     title: "Club Panel",
   };
   
-  export default function RegisterLayout({ children }) {
+  export default function ClubLayout({ children }) {
     return <>{children}</>;
   }
   

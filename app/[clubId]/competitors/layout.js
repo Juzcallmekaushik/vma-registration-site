@@ -2,7 +2,7 @@ export const metadata = {
     title: "Competitors",
   };
   
-  export default function RegisterLayout({ children }) {
+  export default function CompetitorsLayout({ children }) {
     return <>{children}</>;
   }
   

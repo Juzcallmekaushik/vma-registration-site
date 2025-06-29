@@ -2,7 +2,7 @@ export const metadata = {
     title: "Payment Information",
   };
   
-  export default function RegisterLayout({ children }) {
+  export default function PaymentLayout({ children }) {
     return <>{children}</>;
   }
   
