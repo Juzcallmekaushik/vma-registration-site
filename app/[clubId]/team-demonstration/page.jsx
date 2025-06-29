@@ -20,16 +20,6 @@ const emptyMember = {
     club_name: "",
 };
 
-const calculateDemoFee = (form) => {
-    const isBrc = form.brc_member && form.brc_member.trim() !== "";
-    return isBrc ? 110 : 120;
-};
-
-const getTeamFeeForTable = (form) => {
-    const isBrc = form.brc_member && form.brc_member.trim() !== "";
-    return isBrc ? 10 : 10;
-};
-
 export default function TeamDemoPage({ params }) {
     const router = useRouter();
     const { clubId } = React.use(params);
