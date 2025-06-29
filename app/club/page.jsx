@@ -79,18 +79,6 @@ export default function ClubHomePage() {
             <nav className="w-full bg-[#080808] px-4 py-2 flex items-center justify-between border-b border-gray-800" style={{ height: "40px" }}>
                 <div className="flex items-center gap-6">
                     <span className="font-extrabold text-lg">Club Panel</span>
-                    <a
-                        href={`/${club?.club_id?.toLowerCase()}/competitors`}
-                        className="text-xs font-semibold text-white hover:text-gray-400"
-                    >
-                        Competitor
-                    </a>
-                    <a
-                        href={`/${club?.club_id?.toLowerCase()}/representatives`}
-                        className="text-xs font-semibold text-white hover:text-gray-400"
-                    >
-                        Representatives
-                    </a>
                 </div>
                 <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-200">{club?.name}</span>
