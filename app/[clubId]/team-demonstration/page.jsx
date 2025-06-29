@@ -175,33 +175,76 @@ export default function TeamDemoPage({ params }) {
                                 e.preventDefault();
                                 setSubmitting(true);
 
-                                if (!editMember?.club_id) {
-                                    const { data: exists } = await supabase
-                                        .from('demo')
-                                        .select('id_number')
-                                        .eq('club_id', clubId)
-                                        .eq('id_number', editValues.id_number)
-                                        .single();
-                                    if (exists) {
-                                        alert('A team member with this IC/Passport number already exists.');
-                                        setSubmitting(false);
-                                        return;
-                                    }
-                                }
-
                                 const { data: clubData, error: clubError } = await supabase
                                     .from('clubs')
                                     .select('name')
                                     .eq('club_id', clubId)
-                                    .single();
+                                    .maybeSingle();
 
-                                if (clubError || !clubData) {
-                                    alert('Could not fetch club name.');
+                                if (clubError) {
+                                    alert(`Could not fetch club name. ${clubError.message}`);
+                                    setSubmitting(false);
+                                    return;
+                                }
+                                if (!clubData) {
+                                    alert("Could not fetch club name. Club not found.");
                                     setSubmitting(false);
                                     return;
                                 }
 
                                 const clubName = clubData.name;
+
+                                if (editMember && editMember.club_id) {
+                                    const { club_id, ...updateData } = editValues;
+                                    const { error } = await supabase
+                                        .from('demo')
+                                        .update(updateData)
+                                        .eq('club_id', club_id)
+                                        .eq('id_number', editMember.id_number);
+                                    
+                                    if (!error) {
+                                        // Update Google Sheets
+                                        try {
+                                            await fetch("/api/update/update-demo", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    oldIdNumber: editMember.id_number,
+                                                    name: editValues.name,
+                                                    dob: editValues.date_of_birth,
+                                                    gender: editValues.gender,
+                                                    kup: editValues.kup,
+                                                    idNumber: editValues.id_number,
+                                                    brcMember: editValues.brc_member || "",
+                                                    schoolClub: clubName,
+                                                }),
+                                            });
+                                        } catch (err) {
+                                            console.error("Failed to update Google Sheets", err);
+                                        }
+
+                                        const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
+                                        setTeamData(data || []);
+                                        setEditMember(null);
+                                    } else {
+                                        alert(`Update failed! ${error.message}`);
+                                    }
+                                    setSubmitting(false);
+                                    return;
+                                }
+
+                                // Add new member
+                                const { data: exists } = await supabase
+                                    .from('demo')
+                                    .select('id_number')
+                                    .eq('club_id', clubId)
+                                    .eq('id_number', editValues.id_number)
+                                    .single();
+                                if (exists) {
+                                    alert('A team member with this IC/Passport number already exists.');
+                                    setSubmitting(false);
+                                    return;
+                                }
 
                                 const { data: competitor } = await supabase
                                     .from('competitors')
@@ -217,6 +260,8 @@ export default function TeamDemoPage({ params }) {
                                 if (competitor) {
                                     brcMember = competitor.brcmember || "";
                                     displayFee = (Number(competitor.fee) || 0) + teamFee;
+                                } else {
+                                    displayFee = teamFee;
                                 }
 
                                 const insertData = {
@@ -226,60 +271,66 @@ export default function TeamDemoPage({ params }) {
                                     fee: displayFee,
                                     brc_member: brcMember,
                                 };
+                                
                                 const { error } = await supabase
                                     .from('demo')
                                     .insert([insertData]);
+                                    
                                 if (!error) {
                                     const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
                                     setTeamData(data || []);
                                     setEditMember(null);
+
+                                    // Update the total fees
+                                    const { data: feeData } = await supabase
+                                        .from("fees")
+                                        .select("fee")
+                                        .eq("club_id", clubId)
+                                        .maybeSingle();
+
+                                    const currentFee = feeData?.fee || 0;
+                                    const newTotalFee = currentFee + teamFee;
+
+                                    await supabase
+                                        .from("fees")
+                                        .upsert(
+                                            [{ club_id: clubId, fee: newTotalFee }],
+                                            { onConflict: ["club_id"] }
+                                        );
+
+                                    // If they're also a competitor, update their fee
+                                    if (competitor) {
+                                        await supabase
+                                            .from('competitors')
+                                            .update({
+                                                fee: displayFee,
+                                            })
+                                            .eq('club_id', clubId)
+                                            .eq('id_number', editValues.id_number);
+                                    }
+
+                                    // Add to Google Sheets
+                                    try {
+                                        await fetch("/api/add/add-demo", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                name: editValues.name,
+                                                dob: editValues.date_of_birth,
+                                                gender: editValues.gender,
+                                                kup: editValues.kup,
+                                                idNumber: editValues.id_number,
+                                                brcMember: brcMember,
+                                                schoolClub: clubName,
+                                            }),
+                                        });
+                                    } catch (err) {
+                                        console.error("Failed to send to /api/add-demo", err);
+                                    }
                                 } else {
                                     alert(`Insert failed! ${error.message}`);
                                     setSubmitting(false);
                                     return;
-                                }
-
-                                const { data: feeData } = await supabase
-                                    .from("fees")
-                                    .select("fee")
-                                    .eq("club_id", clubId)
-                                    .maybeSingle();
-
-                                const currentFee = feeData?.fee || 0;
-                                const newTotalFee = currentFee + teamFee;
-
-                                await supabase
-                                    .from("fees")
-                                    .upsert(
-                                        [{ club_id: clubId, fee: newTotalFee }],
-                                        { onConflict: ["club_id"] }
-                                    );
-
-                                if (competitor) {
-                                    await supabase
-                                        .from('competitors')
-                                        .update({
-                                            fee: displayFee,
-                                        })
-                                        .eq('club_id', clubId)
-                                        .eq('id_number', editValues.id_number);
-                                }
-
-                                try {
-                                    await fetch("/api/add/add-demo", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({
-                                            name: editValues.name,
-                                            dob: editValues.date_of_birth,
-                                            gender: editValues.gender,
-                                            kup: editValues.kup,
-                                            idNumber: editValues.id_number,
-                                            schoolClub: clubName,
-                                        }),
-                                    });
-                                } catch (err) {
-                                    console.error("Failed to send to /api/add-demo", err);
                                 }
 
                                 setSubmitting(false);
@@ -368,79 +419,109 @@ export default function TeamDemoPage({ params }) {
                                         type="button"
                                         className="w-48 font-bold py-2 rounded bg-red-600 text-white hover:bg-red-700"
                                         onClick={async () => {
-                                            setSubmitting(true);
+                                            if (confirm('Are you sure you want to delete this team member?')) {
+                                                setSubmitting(true);
 
-                                            // Get the member data for fee calculation
-                                            const { data: memberData } = await supabase
-                                                .from('demo')
-                                                .select('brc_member')
-                                                .eq('club_id', editMember.club_id)
-                                                .eq('id_number', editMember.id_number)
-                                                .single();
+                                                // Get the member data for fee calculation
+                                                const { data: memberData } = await supabase
+                                                    .from('demo')
+                                                    .select('brc_member')
+                                                    .eq('club_id', editMember.club_id)
+                                                    .eq('id_number', editMember.id_number)
+                                                    .single();
 
-                                            const teamFee = 10; // Fixed team fee
+                                                const teamFee = 10; // Fixed team fee
 
-                                            // Check if this person is also a competitor
-                                            const { data: competitor } = await supabase
-                                                .from('competitors')
-                                                .select('events, fee')
-                                                .eq('club_id', clubId)
-                                                .eq('id_number', editMember.id_number)
-                                                .single();
-
-                                            // Delete the team member
-                                            await supabase
-                                                .from('demo')
-                                                .delete()
-                                                .eq('club_id', editMember.club_id)
-                                                .eq('id_number', editMember.id_number);
-
-                                            // Update the total fees
-                                            const { data: feeData } = await supabase
-                                                .from("fees")
-                                                .select("fee")
-                                                .eq("club_id", clubId)
-                                                .maybeSingle();
-
-                                            const currentFee = feeData?.fee || 0;
-                                            const newTotalFee = Math.max(currentFee - teamFee, 0);
-
-                                            await supabase
-                                                .from("fees")
-                                                .upsert(
-                                                    [{ club_id: clubId, fee: newTotalFee }],
-                                                    { onConflict: ["club_id"] }
-                                                );
-
-                                            // If they're also a competitor, update their events and fee
-                                            if (competitor) {
-                                                let newEvents = competitor.events || "";
-                                                // Remove "Team Demonstration" from their events
-                                                newEvents = newEvents
-                                                    .replace(/\s*&\s*Team Demonstration/g, "")
-                                                    .replace(/Team Demonstration\s*&\s*/g, "")
-                                                    .replace(/^Team Demonstration$/g, "")
-                                                    .trim();
-                                                
-                                                const updatedCompetitorFee = Math.max(competitor.fee - teamFee, 0);
-                                                
-                                                await supabase
+                                                // Check if this person is also a competitor
+                                                const { data: competitor } = await supabase
                                                     .from('competitors')
-                                                    .update({
-                                                        events: newEvents,
-                                                        fee: updatedCompetitorFee,
-                                                    })
+                                                    .select('events, fee')
                                                     .eq('club_id', clubId)
-                                                    .eq('id_number', editMember.id_number);
-                                            }
+                                                    .eq('id_number', editMember.id_number)
+                                                    .single();
 
-                                            const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
-                                            setTeamData(data || []);
-                                            setEditMember(null);
-                                            setSubmitting(false);
+                                                // Delete the team member from Supabase
+                                                const { error } = await supabase
+                                                    .from('demo')
+                                                    .delete()
+                                                    .eq('club_id', editMember.club_id)
+                                                    .eq('id_number', editMember.id_number);
+
+                                                if (!error) {
+                                                    // Delete from Google Sheets
+                                                    const { data: clubData } = await supabase
+                                                        .from('clubs')
+                                                        .select('name')
+                                                        .eq('club_id', clubId)
+                                                        .single();
+
+                                                    if (clubData) {
+                                                        try {
+                                                            await fetch("/api/delete/delete-demo", {
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                body: JSON.stringify({
+                                                                    idNumber: editMember.id_number,
+                                                                    schoolClub: clubData.name,
+                                                                }),
+                                                            });
+                                                        } catch (err) {
+                                                            console.error("Failed to delete from Google Sheets", err);
+                                                        }
+                                                    }
+
+                                                    // Update the total fees
+                                                    const { data: feeData } = await supabase
+                                                        .from("fees")
+                                                        .select("fee")
+                                                        .eq("club_id", clubId)
+                                                        .maybeSingle();
+
+                                                    const currentFee = feeData?.fee || 0;
+                                                    const newTotalFee = Math.max(currentFee - teamFee, 0);
+
+                                                    await supabase
+                                                        .from("fees")
+                                                        .upsert(
+                                                            [{ club_id: clubId, fee: newTotalFee }],
+                                                            { onConflict: ["club_id"] }
+                                                        );
+
+                                                    // If they're also a competitor, update their events and fee
+                                                    if (competitor) {
+                                                        let newEvents = competitor.events || "";
+                                                        // Remove "Team Demonstration" from their events
+                                                        newEvents = newEvents
+                                                            .replace(/\s*&\s*Team Demonstration/g, "")
+                                                            .replace(/Team Demonstration\s*&\s*/g, "")
+                                                            .replace(/^Team Demonstration$/g, "")
+                                                            .trim();
+                                                        
+                                                        const updatedCompetitorFee = Math.max(competitor.fee - teamFee, 0);
+                                                        
+                                                        await supabase
+                                                            .from('competitors')
+                                                            .update({
+                                                                events: newEvents,
+                                                                fee: updatedCompetitorFee,
+                                                            })
+                                                            .eq('club_id', clubId)
+                                                            .eq('id_number', editMember.id_number);
+                                                    }
+
+                                                    const { data } = await supabase.from('demo').select('*').eq('club_id', clubId);
+                                                    setTeamData(data || []);
+                                                    setEditMember(null);
+                                                } else {
+                                                    alert(`Delete failed! ${error.message}`);
+                                                }
+                                                
+                                                setSubmitting(false);
+                                            }
                                         }}
+                                        disabled={submitting}
                                     >
-                                        Delete
+                                        {submitting ? "Deleting..." : "Delete"}
                                     </button>
                                 )}
                             </div>

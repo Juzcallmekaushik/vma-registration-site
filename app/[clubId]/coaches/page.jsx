@@ -199,6 +199,25 @@ export default function ClubCoachesPage({ params }) {
                                         .eq('club_id', club_id)
                                         .eq('id_number', editCoach.id_number);
                                     if (!error) {
+                                        const updateRes = await fetch("/api/update/update-coaches", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                oldIdNumber: editCoach.id_number,
+                                                fullName: editValues.full_name,
+                                                dob: editValues.date_of_birth,
+                                                gender: editValues.gender,
+                                                phoneNumber: editValues.phone_number,
+                                                idNumber: editValues.id_number,
+                                                tagType: editValues.tag_type,
+                                                schoolClub: editValues.club_name,
+                                            }),
+                                        });
+
+                                        if (!updateRes.ok) {
+                                            console.error("Error updating coach in Google Sheets:", updateRes.statusText);
+                                        }
+
                                         const { data } = await supabase.from('coaches').select('*').eq('club_id', clubId);
                                         setCoachData(data || []);
                                         setEditCoach(null);
@@ -228,6 +247,24 @@ export default function ClubCoachesPage({ params }) {
                                         .from('coaches')
                                         .insert([insertData]);
                                     if (!error) {
+                                        const res = await fetch("/api/add/add-coaches", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                fullName: editValues.full_name,
+                                                dob: editValues.date_of_birth,
+                                                gender: editValues.gender,
+                                                phoneNumber: editValues.phone_number,
+                                                idNumber: editValues.id_number,
+                                                tagType: editValues.tag_type,
+                                                schoolClub: editValues.club_name,
+                                            }),
+                                        });
+
+                                        if (!res.ok) {
+                                            console.error("Error saving data to Google Sheets:", res.statusText);
+                                        }
+
                                         const { data } = await supabase.from('coaches').select('*').eq('club_id', clubId);
                                         setCoachData(data || []);
                                         setEditCoach(null);
@@ -236,25 +273,6 @@ export default function ClubCoachesPage({ params }) {
                                     }
                                 }
 
-                                const res = await fetch("/api/add/add-coaches", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        fullName: editValues.full_name,
-                                        dob: editValues.date_of_birth,
-                                        gender: editValues.gender,
-                                        phoneNumber: editValues.phone_number,
-                                        idNumber: editValues.id_number,
-                                        tagType: editValues.tag_type,
-                                        schoolClub: editValues.club_name,
-                                    }),
-                                });
-
-                                if (!res.ok) {
-                                    console.error("Error saving data to Google Sheets:", res.statusText);
-                                    setSubmitting(false);
-                                    return;
-                                }
                                 setSubmitting(false);
                             }}
                         >
@@ -357,19 +375,42 @@ export default function ClubCoachesPage({ params }) {
                                         type="button"
                                         className="w-48 font-bold py-2 rounded bg-red-600 text-white hover:bg-red-700"
                                         onClick={async () => {
-                                            setSubmitting(true);
-                                            await supabase
-                                                .from('coaches')
-                                                .delete()
-                                                .eq('club_id', editCoach.club_id)
-                                                .eq('id_number', editCoach.id_number);
-                                            const { data } = await supabase.from('coaches').select('*').eq('club_id', clubId);
-                                            setCoachData(data || []);
-                                            setEditCoach(null);
-                                            setSubmitting(false);
+                                            if (confirm('Are you sure you want to delete this coach?')) {
+                                                setSubmitting(true);
+                                                
+                                                const { error } = await supabase
+                                                    .from('coaches')
+                                                    .delete()
+                                                    .eq('club_id', editCoach.club_id)
+                                                    .eq('id_number', editCoach.id_number);
+                                                
+                                                if (!error) {
+                                                    const deleteRes = await fetch("/api/delete/delete-coaches", {
+                                                        method: "POST",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({
+                                                            idNumber: editCoach.id_number,
+                                                            schoolClub: editCoach.club_name,
+                                                        }),
+                                                    });
+
+                                                    if (!deleteRes.ok) {
+                                                        console.error("Error deleting coach from Google Sheets:", deleteRes.statusText);
+                                                    }
+
+                                                    const { data } = await supabase.from('coaches').select('*').eq('club_id', clubId);
+                                                    setCoachData(data || []);
+                                                    setEditCoach(null);
+                                                } else {
+                                                    alert('Delete failed!');
+                                                }
+                                                
+                                                setSubmitting(false);
+                                            }
                                         }}
+                                        disabled={submitting}
                                     >
-                                        Delete
+                                        {submitting ? "Deleting..." : "Delete"}
                                     </button>
                                 )}
                             </div>

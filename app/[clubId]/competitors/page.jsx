@@ -46,20 +46,62 @@ export default function ClubCompetitorsPage({ params }) {
 
     const handleSubmit = async () => {
         setSubmitting(true);
+        
+        // Get club name
+        const { data: clubData, error: clubError } = await supabase
+            .from('clubs')
+            .select('name')
+            .eq('club_id', clubId)
+            .single();
+
+        if (clubError || !clubData) {
+            alert('Could not fetch club name.');
+            setSubmitting(false);
+            return;
+        }
+
+        const clubName = clubData.name;
         const { club_id, ...updateData } = editValues;
+        
         const { error } = await supabase
             .from('competitors')
             .update(updateData)
-            .eq('club_id', club_id);
-        setSubmitting(false);
+            .eq('club_id', club_id)
+            .eq('id_number', editClub.id_number);
+            
         if (!error) {
+            // Update Google Sheets
+            try {
+                await fetch("/api/update/update-competitors", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        oldIdNumber: editClub.id_number,
+                        fullName: editValues.full_name,
+                        dob: editValues.date_of_birth,
+                        catagory: editValues.catagory,
+                        gender: editValues.gender,
+                        idNumber: editValues.id_number,
+                        height: editValues.height,
+                        weight: editValues.weight,
+                        kup: editValues.kup,
+                        events: editValues.events,
+                        fee: editValues.fee,
+                        schoolClub: clubName,
+                    }),
+                });
+            } catch (err) {
+                console.error("Failed to update Google Sheets", err);
+            }
+
             setLoading(true);
-            const { data } = await supabase.from('competitors').select('*');
+            const { data } = await supabase.from('competitors').select('*').eq('club_id', clubId);
             setClubData(data || []);
             setEditClub(null);
         } else {
             alert('Update failed!');
         }
+        setSubmitting(false);
     };
 
     if (loading) {
@@ -254,6 +296,60 @@ export default function ClubCompetitorsPage({ params }) {
                             >
                                 {submitting ? "Saving..." : "Submit"}
                             </button>
+                            {editClub && editClub.club_id && (
+                                <button
+                                    type="button"
+                                    className="w-48 font-bold py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                                    onClick={async () => {
+                                        if (confirm('Are you sure you want to delete this competitor?')) {
+                                            setSubmitting(true);
+                                            
+                                            // Get club name
+                                            const { data: clubData } = await supabase
+                                                .from('clubs')
+                                                .select('name')
+                                                .eq('club_id', clubId)
+                                                .single();
+
+                                            // Delete from Supabase
+                                            const { error } = await supabase
+                                                .from('competitors')
+                                                .delete()
+                                                .eq('club_id', editClub.club_id)
+                                                .eq('id_number', editClub.id_number);
+                                            
+                                            if (!error) {
+                                                // Delete from Google Sheets
+                                                if (clubData) {
+                                                    try {
+                                                        await fetch("/api/delete/delete-competitors", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({
+                                                                idNumber: editClub.id_number,
+                                                                schoolClub: clubData.name,
+                                                            }),
+                                                        });
+                                                    } catch (err) {
+                                                        console.error("Failed to delete from Google Sheets", err);
+                                                    }
+                                                }
+
+                                                const { data } = await supabase.from('competitors').select('*').eq('club_id', clubId);
+                                                setClubData(data || []);
+                                                setEditClub(null);
+                                            } else {
+                                                alert(`Delete failed! ${error.message}`);
+                                            }
+                                            
+                                            setSubmitting(false);
+                                        }
+                                    }}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? "Deleting..." : "Delete"}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
