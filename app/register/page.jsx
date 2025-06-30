@@ -287,7 +287,7 @@ export default function Home() {
                     />
                 </div>
                 </div>
-                <div className="w-full border-t border-gray-200 my-4" />
+                <div className="w-full border-t border-white my-4" />
                 <div className="w-full flex justify-center">
                 <button
                     type="submit"
