@@ -92,7 +92,7 @@ export default function ClubHomePage() {
             </nav>
             <div className="flex flex-col mt-5 md:flex-row justify-between items-center mb-4 gap-2">
                 <div className="bg-white text-black rounded ml-5 px-3 py-2 font-semibold text-[12px] shadow">
-                    Club ID: {club?.club_id}
+                    Club ID: {club?.club_id.toUpperCase()}
                 </div>
                 <div className="bg-white mr-5 text-black rounded px-3 py-2 font-semibold text-[12px] shadow">
                     Competitor Invite Link: <a
