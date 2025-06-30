@@ -30,12 +30,12 @@ export default function PaymentPage() {
                     supabase.from('payment').select('status').eq('club_id', clubId).single()
                 ]);
                 
-                setFee(feeError || !feeData ? 'N/A' : feeData.fee);
+                setFee(feeError || !feeData ? '0' : feeData.fee);
                 setClubName(clubError || !clubData ? 'Unknown Club' : clubData.name);
                 setPaymentStatus(paymentError || !paymentData ? null : paymentData.status);
             } catch (error) {
                 console.error('Fetch error:', error);
-                setFee('N/A');
+                setFee('0');
                 setClubName('Unknown Club');
                 setPaymentStatus(null);
             } finally {
