@@ -417,7 +417,6 @@ x
                                             if (confirm('Are you sure you want to delete this team member?')) {
                                                 setSubmitting(true);
 
-                                                // Get the member data for fee calculation
                                                 const { data: memberData } = await supabase
                                                     .from('demo')
                                                     .select('brc_member')
@@ -425,9 +424,8 @@ x
                                                     .eq('id_number', editMember.id_number)
                                                     .single();
 
-                                                const teamFee = 10; // Fixed team fee
+                                                const teamFee = 10;
 
-                                                // Check if this person is also a competitor
                                                 const { data: competitor } = await supabase
                                                     .from('competitors')
                                                     .select('events, fee')
@@ -435,7 +433,6 @@ x
                                                     .eq('id_number', editMember.id_number)
                                                     .single();
 
-                                                // Delete the team member from Supabase
                                                 const { error } = await supabase
                                                     .from('demo')
                                                     .delete()
@@ -443,7 +440,6 @@ x
                                                     .eq('id_number', editMember.id_number);
 
                                                 if (!error) {
-                                                    // Delete from Google Sheets
                                                     const { data: clubData } = await supabase
                                                         .from('clubs')
                                                         .select('name')
@@ -465,7 +461,6 @@ x
                                                         }
                                                     }
 
-                                                    // Update the total fees
                                                     const { data: feeData } = await supabase
                                                         .from("fees")
                                                         .select("fee")
@@ -482,10 +477,8 @@ x
                                                             { onConflict: ["club_id"] }
                                                         );
 
-                                                    // If they're also a competitor, update their events and fee
                                                     if (competitor) {
                                                         let newEvents = competitor.events || "";
-                                                        // Remove "Team Demonstration" from their events
                                                         newEvents = newEvents
                                                             .replace(/\s*&\s*Team Demonstration/g, "")
                                                             .replace(/Team Demonstration\s*&\s*/g, "")

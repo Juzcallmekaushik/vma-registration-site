@@ -47,7 +47,6 @@ export default function ClubCompetitorsPage({ params }) {
     const handleSubmit = async () => {
         setSubmitting(true);
         
-        // Get club name
         const { data: clubData, error: clubError } = await supabase
             .from('clubs')
             .select('name')
@@ -70,7 +69,6 @@ export default function ClubCompetitorsPage({ params }) {
             .eq('id_number', editClub.id_number);
             
         if (!error) {
-            // Update Google Sheets
             try {
                 await fetch("/api/update/update-competitors", {
                     method: "POST",
@@ -98,6 +96,7 @@ export default function ClubCompetitorsPage({ params }) {
             const { data } = await supabase.from('competitors').select('*').eq('club_id', clubId);
             setClubData(data || []);
             setEditClub(null);
+            setLoading(false);
         } else {
             alert('Update failed!');
         }
@@ -304,14 +303,12 @@ export default function ClubCompetitorsPage({ params }) {
                                         if (confirm('Are you sure you want to delete this competitor?')) {
                                             setSubmitting(true);
                                             
-                                            // Get club name
                                             const { data: clubData } = await supabase
                                                 .from('clubs')
                                                 .select('name')
                                                 .eq('club_id', clubId)
                                                 .single();
 
-                                            // Delete from Supabase
                                             const { error } = await supabase
                                                 .from('competitors')
                                                 .delete()
@@ -319,7 +316,6 @@ export default function ClubCompetitorsPage({ params }) {
                                                 .eq('id_number', editClub.id_number);
                                             
                                             if (!error) {
-                                                // Delete from Google Sheets
                                                 if (clubData) {
                                                     try {
                                                         await fetch("/api/delete/delete-competitors", {
@@ -335,9 +331,11 @@ export default function ClubCompetitorsPage({ params }) {
                                                     }
                                                 }
 
+                                                setLoading(true);
                                                 const { data } = await supabase.from('competitors').select('*').eq('club_id', clubId);
                                                 setClubData(data || []);
                                                 setEditClub(null);
+                                                setLoading(false);
                                             } else {
                                                 alert(`Delete failed! ${error.message}`);
                                             }

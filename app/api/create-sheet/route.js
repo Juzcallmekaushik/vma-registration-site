@@ -26,7 +26,6 @@ export async function POST(req) {
       );
     }
 
-    // Duplicate Sheet1 and unhide the new sheet
     const duplicateRes = await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {

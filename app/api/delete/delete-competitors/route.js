@@ -44,10 +44,6 @@ export async function POST(req) {
 
     const rows = response.data.values || [];
     
-    console.log("Searching for idNumber:", idNumber, "in sheet:", schoolClub);
-    console.log("Total rows found:", rows.length);
-    console.log("First few rows:", rows.slice(0, 3));
-    
     let rowIndex = -1;
     let idColumnIndex = -1;
     
@@ -58,8 +54,6 @@ export async function POST(req) {
       rowIndex = rows.findIndex((row) => row && row[4] && row[4].toString().trim() === idNumber.toString().trim());
       idColumnIndex = 4;
     }
-    
-    console.log("Row index found:", rowIndex, "in column:", idColumnIndex);
     
     if (rowIndex === -1) {
       return new Response(JSON.stringify({ 

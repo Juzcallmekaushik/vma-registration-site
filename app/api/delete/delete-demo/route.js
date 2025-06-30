@@ -55,7 +55,6 @@ export async function POST(req) {
 
     const actualRowNumber = rowIndex + 1;
 
-    // Get all demo data after the row to be deleted
     const remainingDataResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: `${schoolClub}!T${actualRowNumber + 1}:Y`,
@@ -63,7 +62,6 @@ export async function POST(req) {
 
     const remainingRows = remainingDataResponse.data.values || [];
 
-    // Clear the current row and all rows below it in the demo section
     const totalDemoRows = rows.length;
     if (totalDemoRows > 0) {
       await sheets.spreadsheets.values.clear({
@@ -71,7 +69,6 @@ export async function POST(req) {
         range: `${schoolClub}!T${actualRowNumber}:Y${actualRowNumber + totalDemoRows - 1}`,
       });
 
-      // If there are remaining rows, write them back starting from the deleted row position
       if (remainingRows.length > 0) {
         await sheets.spreadsheets.values.update({
           spreadsheetId: process.env.GOOGLE_SHEET_ID,

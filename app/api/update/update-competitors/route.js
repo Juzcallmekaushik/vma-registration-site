@@ -68,8 +68,6 @@ export async function POST(req) {
       idColumnIndex = 4;
     }
     
-    console.log("Row index found:", rowIndex, "in column:", idColumnIndex);
-    
     if (rowIndex === -1) {
       return new Response(JSON.stringify({ 
         error: "Competitor with old ID number not found in the sheet", 
