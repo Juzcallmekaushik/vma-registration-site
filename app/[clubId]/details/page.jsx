@@ -15,9 +15,9 @@ export default function ClubDetailsPage() {
     const [form, setForm] = useState({
         representative: "",
         dob: "",
-        phone: "",
+        phone_number: "",
         email: "",
-        club: "",
+        name: "",
         user_email: "",
         master_name: "",
         address: "",
@@ -29,9 +29,20 @@ export default function ClubDetailsPage() {
             const { data, error } = await supabase
                 .from("clubs")
                 .select("*")
-                .eq("club_id", clubId?.toUpperCase())
+                .eq("club_id", clubId)
                 .single();
-            if (data) setForm(data);
+            if (data) {
+                setForm({
+                    representative: data.representative || "",
+                    dob: data.dob || "",
+                    phone_number: data.phone_number || "",
+                    email: data.email || "",
+                    name: data.name || "",
+                    user_email: data.user_email || "",
+                    master_name: data.master_name || "",
+                    address: data.address || "",
+                });
+            }
         }
         if (clubId) fetchClub();
     }, [clubId]);
@@ -87,7 +98,6 @@ export default function ClubDetailsPage() {
             <form
                 onSubmit={handleSubmit}
                 className="relative bg-white border border-black rounded-lg shadow-lg p-4 sm:p-6 w-[95vw] max-w-3xl flex flex-col items-center"
-                style={{ maxHeight: "95vh", minHeight: "90vh" }}
             >
                 {!editMode && (
                     <button
@@ -99,7 +109,7 @@ export default function ClubDetailsPage() {
                         <Pencil size={16} />
                     </button>
                 )}
-                <div className="flex flex-col md:flex-row w-full gap-6 overflow-y-auto">
+                <div className="flex flex-col md:flex-row w-full gap-6">
                     <div className="flex-1 flex flex-col gap-1 order-1">
                         <h2 className="text-lg font-extrabold text-black mb-1 text-center md:text-left">User Details</h2>
                         <label className="text-[12px] text-black font-semibold">First Name</label>
@@ -122,7 +132,7 @@ export default function ClubDetailsPage() {
                             onChange={handleChange}
                             required
                             className="w-full text-black p-2 border border-black rounded"
-                            disabled={!editMode}
+                            disabled
                         />
                         <label className="text-[12px] text-black font-semibold">Phone Number</label>
                         <input
@@ -149,7 +159,6 @@ export default function ClubDetailsPage() {
                             disabled={!editMode}
                         />
                     </div>
-                    <div className="hidden md:block w-px bg-black mx-2 md:order-2" />
                     <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
                         <h2 className="text-lg font-extrabold text-black mb-1 text-center md:text-left">Club Details</h2>
                         <label className="text-[12px] text-black font-semibold">Club Email</label>
