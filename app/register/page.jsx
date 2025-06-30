@@ -186,7 +186,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
                 </button>
-                <div className="flex flex-col md:flex-row w-full gap-6 md:gap-8 overflow-y-auto">
+                <div className="flex flex-col md:flex-row w-full gap-6 md:gap-8">
                 <div className="flex-1 flex flex-col gap-2 order-1">
                     <h2 className="text-lg md:text-xl font-extrabold text-black text-center md:text-left">User Details</h2>
                     <label className="text-xs md:text-sm text-black font-semibold">First Name</label>
