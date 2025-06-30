@@ -196,7 +196,7 @@ export default function ClubCompetitorsPage({ params }) {
                         <h2 className="text-md sm:text-md font-bold text-black text-center w-full">
                             VMA Junior Championship 2025 Registration
                         </h2>
-                        <div className="flex flex-col mt-3 md:flex-row w-full gap-6 overflow-y-auto">
+                        <div className="flex flex-col mt-3 md:flex-row w-full gap-6">
                             <div className="flex-1 flex flex-col gap-1 order-1">
                                 <label className="text-[12px] text-black font-semibold">Full Name</label>
                                 <input
@@ -230,6 +230,9 @@ export default function ClubCompetitorsPage({ params }) {
                                     onChange={handleChange}
                                     className="w-full text-black p-2 border border-black rounded bg-gray-100"
                                 />
+                            </div>
+                            <div className="hidden md:block w-px bg-black md:order-2" />
+                            <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
                                 <label className="text-[12px] text-black font-semibold">Height (CM)</label>
                                 <input
                                     type="number"
@@ -237,10 +240,7 @@ export default function ClubCompetitorsPage({ params }) {
                                     value={editValues.height || ""}
                                     onChange={handleChange}
                                     className="w-full text-black p-2 border border-black rounded bg-gray-100"
-                                />
-                            </div>
-                            <div className="hidden md:block w-px bg-black md:order-2" />
-                            <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
+                                />                                
                                 <label className="text-[12px] text-black font-semibold">Weight (KG)</label>
                                 <input
                                     type="number"
@@ -249,31 +249,66 @@ export default function ClubCompetitorsPage({ params }) {
                                     onChange={handleChange}
                                     className="w-full text-black p-2 border border-black rounded bg-gray-100"
                                 />
-                                <label className="text-[12px] text-black font-semibold">Kup / Dan</label>
-                                <input
-                                    type="text"
-                                    name="kup_dan"
-                                    value={editValues.kup_dan || ""}
+                                <label className="text-[12px] text-black font-semibold">Kup</label>
+                                <select
+                                    name="kup"
+                                    value={editValues.kup || ""}
                                     onChange={handleChange}
-                                    className="w-full text-black p-2 border border-black rounded bg-gray-100"
-                                />
-                                <label className="text-[12px] text-black font-semibold">State / Country</label>
-                                <input
-                                    type="text"
-                                    name="state"
-                                    value={editValues.state || ""}
-                                    onChange={handleChange}
-                                    className="w-full text-black p-2 border border-black rounded bg-gray-100"
-                                />
+                                    required
+                                    className="w-full text-black p-2 border border-black rounded"
+                                >
+                                    <option value="" disabled>Select Kup</option>
+                                    <option value="1st Kup">1st Kup (Red-Black)</option>
+                                    <option value="2nd Kup">2nd Kup (Red)</option>
+                                    <option value="3rd Kup">3rd Kup (Blue-Red)</option>
+                                    <option value="4th Kup">4th Kup (Blue)</option>
+                                    <option value="5th Kup">5th Kup (Green-Blue)</option>
+                                    <option value="6th Kup">6th Kup (Green)</option>
+                                    <option value="7th Kup">7th Kup (Yellow-Green)</option>
+                                    <option value="8th Kup">8th Kup (Yellow)</option>
+                                    <option value="9th Kup">9th Kup (White-Yellow)</option>
+                                    <option value="10th Kup">10th Kup (White)</option>
+                                </select>
                                 <div className="flex flex-col gap-2 ">
                                     <label className="text-[12px] text-black font-bold">Events</label>
-                                    <input
-                                        type="text"
-                                        name="events"
-                                        value={editValues.events || ""}
-                                        onChange={handleChange}
-                                        className="w-full text-black p-2 border border-black rounded bg-gray-100"
-                                    />
+                                    <div className="flex gap-4">
+                                        {["Pattern", "Sparring"].map(eventName => {
+                                            // Parse events string to array, case-insensitive match
+                                            const eventsArr = (editValues.events || "")
+                                                .split(",")
+                                                .map(ev => ev.trim().toLowerCase())
+                                                .filter(Boolean);
+                                            const checked = eventsArr.includes(eventName.toLowerCase());
+                                            return (
+                                                <label key={eventName} className="flex items-center text-[12px] text-black gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        name={eventName.toLowerCase()}
+                                                        checked={checked}
+                                                        onChange={e => {
+                                                            let events = (editValues.events || "")
+                                                                .split(",")
+                                                                .map(ev => ev.trim())
+                                                                .filter(Boolean);
+                                                            if (e.target.checked) {
+                                                                if (!events.map(ev => ev.toLowerCase()).includes(eventName.toLowerCase())) {
+                                                                    events.push(eventName);
+                                                                }
+                                                            } else {
+                                                                events = events.filter(ev => ev.toLowerCase() !== eventName.toLowerCase());
+                                                            }
+                                                            setEditValues(prev => ({
+                                                                ...prev,
+                                                                events: events.join(", ")
+                                                            }));
+                                                        }}
+                                                        className="accent-black"
+                                                    />
+                                                    {eventName}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         </div>

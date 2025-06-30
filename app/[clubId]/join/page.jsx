@@ -205,7 +205,7 @@ export default function JoinClubPage({ params }) {
                 <h2 className="text-md sm:text-md font-bold text-black text-center w-full">
                     VMA Junior Championship 2025 Registration
                 </h2>
-                <div className="flex flex-col mt-3 md:flex-row w-full gap-6 overflow-y-auto">
+                <div className="flex flex-col mt-3 md:flex-row w-full gap-6">
                     <div className="flex-1 flex flex-col gap-1 order-1">
                         <label className="text-[12px] text-black font-semibold">Full Name</label>
                         <input
