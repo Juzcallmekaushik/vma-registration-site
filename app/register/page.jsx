@@ -121,6 +121,13 @@ export default function Home() {
             };
             const { error } = await supabase.from("clubs").insert([clubData]);
             if (!error) {
+                await supabase.from("fees").insert([
+                    {
+                        club_id: clubId.toLowerCase(),  
+                        fee: 0
+                    },
+                ]);
+                
                 await fetch('/api/create-sheet', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
