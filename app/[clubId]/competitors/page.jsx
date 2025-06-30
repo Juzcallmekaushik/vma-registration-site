@@ -316,6 +316,23 @@ export default function ClubCompetitorsPage({ params }) {
                                                 .eq('id_number', editClub.id_number);
                                             
                                             if (!error) {
+                                                const competitorFee = editClub.fee || 0;
+                                                const { data: feeData } = await supabase
+                                                    .from("fees")
+                                                    .select("fee")
+                                                    .eq("club_id", clubId)
+                                                    .maybeSingle();
+
+                                                const currentFee = feeData?.fee || 0;
+                                                const newTotalFee = Math.max(currentFee - competitorFee, 0);
+
+                                                await supabase
+                                                    .from("fees")
+                                                    .upsert(
+                                                        [{ club_id: clubId, fee: newTotalFee }],
+                                                        { onConflict: ["club_id"] }
+                                                    );
+
                                                 if (clubData) {
                                                     try {
                                                         await fetch("/api/delete/delete-competitors", {
