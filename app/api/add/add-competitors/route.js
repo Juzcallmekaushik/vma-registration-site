@@ -3,7 +3,7 @@ import { google } from "googleapis";
 export async function POST(req) {
   try {
     const bodyText = await req.text();
-    const { fullName, idNumber, gender, dob, catagory, height, weight, kupDan, events, fee, schoolClub } = JSON.parse(bodyText);
+    const { fullName, idNumber, gender, dob, catagory, height, weight, kupDan, events, schoolClub } = JSON.parse(bodyText);
 
     const auth = new google.auth.GoogleAuth({
       credentials: {
@@ -20,7 +20,7 @@ export async function POST(req) {
       range: `${schoolClub}!A:J`,
       valueInputOption: "RAW",
       requestBody: {
-        values: [[ fullName, dob, catagory, gender, idNumber, height, weight, kupDan, events, fee ]],
+        values: [[ fullName, idNumber, gender, dob, catagory, height, weight, kupDan, events, schoolClub ]],
       },
     });
 

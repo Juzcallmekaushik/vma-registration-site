@@ -252,7 +252,7 @@ x
                                     .single();
 
                                 if (!competitor) {
-                                    alert('PARTICIPANT MUST BE A PART OF ATLEAST 1 INDIVIDUAL EVENT TO TAKE PART IN TEAM DEMONSTRATION.\n\nPlease register this participant as a competitor first before adding them to the team demonstration.');
+                                    alert('PARTICIPANT MUST BE A PART OF ATLEAST 1 INDIVIDUAL EVENT TO TAKE PART IN TEAM DEMONSTRATION.');
                                     setSubmitting(false);
                                     return;
                                 }
