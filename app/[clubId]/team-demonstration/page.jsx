@@ -154,6 +154,9 @@ export default function TeamDemoPage({ params }) {
             <div className="flex justify-center mt-2">
                 <span className="text-xs text-gray-600">Each team must contain 3 - 5 Members</span>
             </div>
+            <div className="flex justify-center mt-1">
+                <span className="text-xs text-yellow-600 font-semibold">⚠️ Participants must be registered as competitors before joining team demonstration</span>
+            </div>
 
             {editMember && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
@@ -203,7 +206,6 @@ export default function TeamDemoPage({ params }) {
                                         .eq('id_number', editMember.id_number);
                                     
                                     if (!error) {
-                                        // Update Google Sheets
                                         try {
                                             await fetch("/api/update/update-demo", {
                                                 method: "POST",
@@ -233,7 +235,6 @@ export default function TeamDemoPage({ params }) {
                                     return;
                                 }
 
-                                // Add new member
                                 const { data: exists } = await supabase
                                     .from('demo')
                                     .select('id_number')
@@ -253,16 +254,18 @@ export default function TeamDemoPage({ params }) {
                                     .eq('id_number', editValues.id_number)
                                     .single();
 
+                                if (!competitor) {
+                                    alert('PARTICIPANT MUST BE A PART OF ATLEAST 1 INDIVIDUAL EVENT TO TAKE PART IN TEAM DEMONSTRATION.\n\nPlease register this participant as a competitor first before adding them to the team demonstration.');
+                                    setSubmitting(false);
+                                    return;
+                                }
+
                                 let displayFee;
                                 let brcMember = "";
                                 const teamFee = 10;
 
-                                if (competitor) {
-                                    brcMember = competitor.brcmember || "";
-                                    displayFee = (Number(competitor.fee) || 0) + teamFee;
-                                } else {
-                                    displayFee = teamFee;
-                                }
+                                brcMember = competitor.brcmember || "";
+                                displayFee = (Number(competitor.fee) || 0) + teamFee;
 
                                 const insertData = {
                                     ...editValues,
@@ -281,7 +284,6 @@ export default function TeamDemoPage({ params }) {
                                     setTeamData(data || []);
                                     setEditMember(null);
 
-                                    // Update the total fees
                                     const { data: feeData } = await supabase
                                         .from("fees")
                                         .select("fee")
@@ -298,18 +300,14 @@ export default function TeamDemoPage({ params }) {
                                             { onConflict: ["club_id"] }
                                         );
 
-                                    // If they're also a competitor, update their fee
-                                    if (competitor) {
-                                        await supabase
-                                            .from('competitors')
-                                            .update({
-                                                fee: displayFee,
-                                            })
-                                            .eq('club_id', clubId)
-                                            .eq('id_number', editValues.id_number);
-                                    }
+                                    await supabase
+                                        .from('competitors')
+                                        .update({
+                                            fee: displayFee,
+                                        })
+                                        .eq('club_id', clubId)
+                                        .eq('id_number', editValues.id_number);
 
-                                    // Add to Google Sheets
                                     try {
                                         await fetch("/api/add/add-demo", {
                                             method: "POST",
