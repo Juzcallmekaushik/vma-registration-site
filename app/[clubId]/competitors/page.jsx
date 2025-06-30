@@ -273,7 +273,6 @@ export default function ClubCompetitorsPage({ params }) {
                                     <label className="text-[12px] text-black font-bold">Events</label>
                                     <div className="flex gap-4">
                                         {["Pattern", "Sparring"].map(eventName => {
-                                            // Parse events string to array, case-insensitive match
                                             const eventsArr = (editValues.events || "")
                                                 .split(",")
                                                 .map(ev => ev.trim().toLowerCase())
