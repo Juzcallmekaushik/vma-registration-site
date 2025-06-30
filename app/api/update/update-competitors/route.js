@@ -7,7 +7,7 @@ export async function POST(req) {
       oldIdNumber, 
       fullName, 
       dob, 
-      catagory,
+      category,
       gender, 
       idNumber, 
       height,
@@ -57,10 +57,29 @@ export async function POST(req) {
 
     const rows = response.data.values || [];
     
-    const rowIndex = rows.findIndex((row) => row[4] === oldIdNumber);
+    let rowIndex = -1;
+    let idColumnIndex = -1;
+    
+    rowIndex = rows.findIndex((row) => row && row[1] && row[1].toString().trim() === oldIdNumber.toString().trim());
+    idColumnIndex = 1;
+
+    if (rowIndex === -1) {
+      rowIndex = rows.findIndex((row) => row && row[4] && row[4].toString().trim() === oldIdNumber.toString().trim());
+      idColumnIndex = 4;
+    }
+    
+    console.log("Row index found:", rowIndex, "in column:", idColumnIndex);
     
     if (rowIndex === -1) {
-      return new Response(JSON.stringify({ error: "Competitor with old ID number not found in the sheet" }), {
+      return new Response(JSON.stringify({ 
+        error: "Competitor with old ID number not found in the sheet", 
+        details: {
+          searchedId: oldIdNumber,
+          sheetName: schoolClub,
+          totalRows: rows.length,
+          firstFewRows: rows.slice(0, 3)
+        }
+      }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
@@ -72,7 +91,7 @@ export async function POST(req) {
       range: `${schoolClub}!A${actualRowNumber}:J${actualRowNumber}`,
       valueInputOption: "RAW",
       requestBody: {
-        values: [[fullName, dob, catagory, gender, idNumber, height, weight, kup, events, fee]],
+        values: [[fullName, idNumber, gender, dob, category, height, weight, kup, events, schoolClub]],
       },
     });
 

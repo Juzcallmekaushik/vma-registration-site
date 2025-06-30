@@ -44,10 +44,33 @@ export async function POST(req) {
 
     const rows = response.data.values || [];
     
-    const rowIndex = rows.findIndex((row) => row[4] === idNumber);
+    console.log("Searching for idNumber:", idNumber, "in sheet:", schoolClub);
+    console.log("Total rows found:", rows.length);
+    console.log("First few rows:", rows.slice(0, 3));
+    
+    let rowIndex = -1;
+    let idColumnIndex = -1;
+    
+    rowIndex = rows.findIndex((row) => row && row[1] && row[1].toString().trim() === idNumber.toString().trim());
+    idColumnIndex = 1;
     
     if (rowIndex === -1) {
-      return new Response(JSON.stringify({ error: "Competitor with ID number not found in the sheet" }), {
+      rowIndex = rows.findIndex((row) => row && row[4] && row[4].toString().trim() === idNumber.toString().trim());
+      idColumnIndex = 4;
+    }
+    
+    console.log("Row index found:", rowIndex, "in column:", idColumnIndex);
+    
+    if (rowIndex === -1) {
+      return new Response(JSON.stringify({ 
+        error: "Competitor with ID number not found in the sheet", 
+        details: {
+          searchedId: idNumber,
+          sheetName: schoolClub,
+          totalRows: rows.length,
+          firstFewRows: rows.slice(0, 3)
+        }
+      }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
