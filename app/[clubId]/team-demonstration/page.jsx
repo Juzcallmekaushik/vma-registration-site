@@ -97,14 +97,18 @@ export default function TeamDemoPage({ params }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {teamData.map((member) => (
+                    {teamData.map((member, index) => (
                         <tr key={member.club_id + member.id_number}>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.name}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.date_of_birth}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.gender}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.kup}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.id_number}</td>
-                            <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">120</td>
+                            {index === 0 && (
+                                <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white" rowSpan={teamData.length}>
+                                    120
+                                </td>
+                            )}
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">
                                 <button
                                     type="button"
