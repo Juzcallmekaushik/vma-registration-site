@@ -263,7 +263,8 @@ x
                                 const isFirstTeamMember = !existingTeamMembers || existingTeamMembers.length === 0;
                                 const teamFee = isFirstTeamMember ? 120 : 0;
                                 
-                                const displayFee = (Number(competitor.fee) || 0) + teamFee;
+                                // Team demo fee is flat 120, not added to competitor fee
+                                const displayFee = 120;
 
                                 const insertData = {
                                     ...editValues,
@@ -297,14 +298,6 @@ x
                                                 [{ club_id: clubId, fee: newTotalFee }],
                                                 { onConflict: ["club_id"] }
                                             );
-
-                                        await supabase
-                                            .from('competitors')
-                                            .update({
-                                                fee: displayFee,
-                                            })
-                                            .eq('club_id', clubId)
-                                            .eq('id_number', editValues.id_number);
                                     }
 
                                     try {
@@ -489,14 +482,11 @@ x
                                                             .replace(/^Team Demonstration$/g, "")
                                                             .trim();
                                                         
-                                                        // Only subtract fee if this is the last member
-                                                        const updatedCompetitorFee = teamFee > 0 ? Math.max(competitor.fee - teamFee, 0) : competitor.fee;
-                                                        
+                                                        // Don't change competitor fee, just update events
                                                         await supabase
                                                             .from('competitors')
                                                             .update({
                                                                 events: newEvents,
-                                                                fee: updatedCompetitorFee,
                                                             })
                                                             .eq('club_id', clubId)
                                                             .eq('id_number', editMember.id_number);
