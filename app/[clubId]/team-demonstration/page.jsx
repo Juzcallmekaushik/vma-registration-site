@@ -15,7 +15,6 @@ const emptyMember = {
     gender: "",
     kup: "",
     id_number: "",
-    brc_member: "",
     fee: 0,
     club_name: "",
 };
@@ -214,7 +213,6 @@ x
                                                     gender: editValues.gender,
                                                     kup: editValues.kup,
                                                     idNumber: editValues.id_number,
-                                                    brcMember: editValues.brc_member || "",
                                                     schoolClub: clubName,
                                                 }),
                                             });
@@ -246,7 +244,7 @@ x
 
                                 const { data: competitor } = await supabase
                                     .from('competitors')
-                                    .select('brcmember, events, fee')
+                                    .select('events, fee')
                                     .eq('club_id', clubId)
                                     .eq('id_number', editValues.id_number)
                                     .single();
@@ -257,19 +255,21 @@ x
                                     return;
                                 }
 
-                                let displayFee;
-                                let brcMember = "";
-                                const teamFee = 10;
-
-                                brcMember = competitor.brcmember || "";
-                                displayFee = (Number(competitor.fee) || 0) + teamFee;
+                                const { data: existingTeamMembers } = await supabase
+                                    .from('demo')
+                                    .select('id_number')
+                                    .eq('club_id', clubId);
+                                
+                                const isFirstTeamMember = !existingTeamMembers || existingTeamMembers.length === 0;
+                                const teamFee = isFirstTeamMember ? 120 : 0;
+                                
+                                const displayFee = (Number(competitor.fee) || 0) + teamFee;
 
                                 const insertData = {
                                     ...editValues,
                                     club_id: clubId,
                                     club_name: clubName,
                                     fee: displayFee,
-                                    brc_member: brcMember,
                                 };
                                 
                                 const { error } = await supabase
@@ -281,29 +281,31 @@ x
                                     setTeamData(data || []);
                                     setEditMember(null);
 
-                                    const { data: feeData } = await supabase
-                                        .from("fees")
-                                        .select("fee")
-                                        .eq("club_id", clubId)
-                                        .maybeSingle();
+                                    if (teamFee > 0) {
+                                        const { data: feeData } = await supabase
+                                            .from("fees")
+                                            .select("fee")
+                                            .eq("club_id", clubId)
+                                            .maybeSingle();
 
-                                    const currentFee = feeData?.fee || 0;
-                                    const newTotalFee = currentFee + teamFee;
+                                        const currentFee = feeData?.fee || 0;
+                                        const newTotalFee = currentFee + teamFee;
 
-                                    await supabase
-                                        .from("fees")
-                                        .upsert(
-                                            [{ club_id: clubId, fee: newTotalFee }],
-                                            { onConflict: ["club_id"] }
-                                        );
+                                        await supabase
+                                            .from("fees")
+                                            .upsert(
+                                                [{ club_id: clubId, fee: newTotalFee }],
+                                                { onConflict: ["club_id"] }
+                                            );
 
-                                    await supabase
-                                        .from('competitors')
-                                        .update({
-                                            fee: displayFee,
-                                        })
-                                        .eq('club_id', clubId)
-                                        .eq('id_number', editValues.id_number);
+                                        await supabase
+                                            .from('competitors')
+                                            .update({
+                                                fee: displayFee,
+                                            })
+                                            .eq('club_id', clubId)
+                                            .eq('id_number', editValues.id_number);
+                                    }
 
                                     try {
                                         await fetch("/api/add/add-demo", {
@@ -315,7 +317,6 @@ x
                                                 gender: editValues.gender,
                                                 kup: editValues.kup,
                                                 idNumber: editValues.id_number,
-                                                brcMember: brcMember,
                                                 schoolClub: clubName,
                                             }),
                                         });
@@ -417,14 +418,14 @@ x
                                             if (confirm('Are you sure you want to delete this team member?')) {
                                                 setSubmitting(true);
 
-                                                const { data: memberData } = await supabase
+                                                // Check if this is the last team member
+                                                const { data: allTeamMembers } = await supabase
                                                     .from('demo')
-                                                    .select('brc_member')
-                                                    .eq('club_id', editMember.club_id)
-                                                    .eq('id_number', editMember.id_number)
-                                                    .single();
-
-                                                const teamFee = 10;
+                                                    .select('id_number')
+                                                    .eq('club_id', clubId);
+                                                
+                                                const isLastTeamMember = allTeamMembers && allTeamMembers.length === 1;
+                                                const teamFee = isLastTeamMember ? 120 : 0;
 
                                                 const { data: competitor } = await supabase
                                                     .from('competitors')
@@ -461,21 +462,24 @@ x
                                                         }
                                                     }
 
-                                                    const { data: feeData } = await supabase
-                                                        .from("fees")
-                                                        .select("fee")
-                                                        .eq("club_id", clubId)
-                                                        .maybeSingle();
+                                                    // Only update fees if this is the last team member (teamFee > 0)
+                                                    if (teamFee > 0) {
+                                                        const { data: feeData } = await supabase
+                                                            .from("fees")
+                                                            .select("fee")
+                                                            .eq("club_id", clubId)
+                                                            .maybeSingle();
 
-                                                    const currentFee = feeData?.fee || 0;
-                                                    const newTotalFee = Math.max(currentFee - teamFee, 0);
+                                                        const currentFee = feeData?.fee || 0;
+                                                        const newTotalFee = Math.max(currentFee - teamFee, 0);
 
-                                                    await supabase
-                                                        .from("fees")
-                                                        .upsert(
-                                                            [{ club_id: clubId, fee: newTotalFee }],
-                                                            { onConflict: ["club_id"] }
-                                                        );
+                                                        await supabase
+                                                            .from("fees")
+                                                            .upsert(
+                                                                [{ club_id: clubId, fee: newTotalFee }],
+                                                                { onConflict: ["club_id"] }
+                                                            );
+                                                    }
 
                                                     if (competitor) {
                                                         let newEvents = competitor.events || "";
@@ -485,7 +489,8 @@ x
                                                             .replace(/^Team Demonstration$/g, "")
                                                             .trim();
                                                         
-                                                        const updatedCompetitorFee = Math.max(competitor.fee - teamFee, 0);
+                                                        // Only subtract fee if this is the last member
+                                                        const updatedCompetitorFee = teamFee > 0 ? Math.max(competitor.fee - teamFee, 0) : competitor.fee;
                                                         
                                                         await supabase
                                                             .from('competitors')
