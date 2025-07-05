@@ -104,7 +104,7 @@ export default function TeamDemoPage({ params }) {
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.gender}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.kup}</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.id_number}</td>
-                            <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">{member.fee}</td>
+                            <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">120</td>
                             <td className="py-2 px-4 text-center text-[10px] border-b border-r border-white">
                                 <button
                                     type="button"
@@ -270,7 +270,6 @@ x
                                     ...editValues,
                                     club_id: clubId,
                                     club_name: clubName,
-                                    fee: displayFee,
                                 };
                                 
                                 const { error } = await supabase
