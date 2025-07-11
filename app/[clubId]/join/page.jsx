@@ -41,8 +41,8 @@ export default function JoinClubPage({ params }) {
                     console.error("Error fetching club:", clubError);
                     setError("Failed to load club information");
                 } else if (clubData) {
-                    setClubName(clubData.club_name);
-                    setForm(prev => ({ ...prev, schoolClub: clubData.club_name }));
+                    setClubName(clubData.name);
+                    setForm(prev => ({ ...prev, schoolClub: clubData.name }));
                 } else {
                     setError("Club not found");
                 }
