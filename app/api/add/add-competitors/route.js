@@ -2,10 +2,10 @@ import { google } from "googleapis";
 
 export async function POST(req) {
   try {
-    const bodyText = await req.text();
-    console.log("Received request body:", bodyText);
+    const bodyText = await req.text();    
+    const parsedBody = JSON.parse(bodyText);
     
-    const { fullName, idNumber, gender, dob, category, height, weight, kupDan, events, schoolClub } = JSON.parse(bodyText);
+    const { fullName, idNumber, gender, dob, category, height, weight, kupDan, events, schoolClub } = parsedBody;
     
     if (!schoolClub) {
       console.error("Missing schoolClub field in request");
@@ -22,8 +22,6 @@ export async function POST(req) {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    
-    console.log("Processing competitor data:", { fullName, idNumber, schoolClub });
 
     const auth = new google.auth.GoogleAuth({
       credentials: {
@@ -35,8 +33,6 @@ export async function POST(req) {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    console.log(`Attempting to write to sheet: ${schoolClub}, range: ${schoolClub}!A:J`);
-
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: `${schoolClub}!A:J`,
@@ -45,8 +41,6 @@ export async function POST(req) {
         values: [[ fullName, idNumber, gender, dob, category, height, weight, kupDan, events, schoolClub ]],
       },
     });
-
-    console.log("Successfully added competitor to Google Sheet");
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },

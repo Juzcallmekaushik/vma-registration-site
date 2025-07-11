@@ -25,6 +25,7 @@ export default function JoinClubPage({ params }) {
     useEffect(() => {
         const fetchClubName = async () => {
             try {
+                console.log("Fetching club data for clubId:", clubId);
                 const { createClient } = await import("@supabase/supabase-js");
                 const supabase = createClient(
                     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -37,13 +38,18 @@ export default function JoinClubPage({ params }) {
                     .eq("club_id", clubId)
                     .maybeSingle();
 
+                console.log("Club data received:", clubData);
+                console.log("Club error:", clubError);
+
                 if (clubError) {
                     console.error("Error fetching club:", clubError);
                     setError("Failed to load club information");
                 } else if (clubData) {
+                    console.log("Setting club name:", clubData.name);
                     setClubName(clubData.name);
                     setForm(prev => ({ ...prev, schoolClub: clubData.name }));
                 } else {
+                    console.error("No club data found for clubId:", clubId);
                     setError("Club not found");
                 }
             } catch (err) {
@@ -115,6 +121,13 @@ export default function JoinClubPage({ params }) {
         e.preventDefault();
         setError("");
         setSubmitting(true);
+
+        // Validate that schoolClub is available
+        if (!form.schoolClub) {
+            setError("Club information is not loaded yet. Please wait and try again.");
+            setSubmitting(false);
+            return;
+        }
 
         const age = getAge(form.dob);
         const category = getCategory(age);
@@ -208,21 +221,24 @@ export default function JoinClubPage({ params }) {
                     fee: fee,
                 },
             ]);
+            
+            const requestBody = {
+                fullName: form.fullName,
+                idNumber: form.idNumber,
+                gender: form.gender,
+                dob: form.dob,
+                category,
+                height: form.height,
+                weight: form.weight,
+                kupDan: form.kupDan,
+                events,
+                schoolClub: form.schoolClub,
+            };
+            
             const res = await fetch("/api/add/add-competitors", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    fullName: form.fullName,
-                    idNumber: form.idNumber,
-                    gender: form.gender,
-                    dob: form.dob,
-                    category,
-                    height: form.height,
-                    weight: form.weight,
-                    kupDan: form.kupDan,
-                    events,
-                    schoolClub: form.schoolClub,
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             if (!res.ok) {
