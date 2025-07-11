@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function JoinClubPage({ params }) {
     const resolvedParams = React.use(params);
@@ -19,6 +19,45 @@ export default function JoinClubPage({ params }) {
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [clubName, setClubName] = useState("");
+    const [loadingClub, setLoadingClub] = useState(true);
+
+    useEffect(() => {
+        const fetchClubName = async () => {
+            try {
+                const { createClient } = await import("@supabase/supabase-js");
+                const supabase = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+                );
+
+                const { data: clubData, error: clubError } = await supabase
+                    .from("clubs")
+                    .select("name")
+                    .eq("club_id", clubId)
+                    .maybeSingle();
+
+                if (clubError) {
+                    console.error("Error fetching club:", clubError);
+                    setError("Failed to load club information");
+                } else if (clubData) {
+                    setClubName(clubData.club_name);
+                    setForm(prev => ({ ...prev, schoolClub: clubData.club_name }));
+                } else {
+                    setError("Club not found");
+                }
+            } catch (err) {
+                console.error("Error fetching club:", err);
+                setError("Failed to load club information");
+            } finally {
+                setLoadingClub(false);
+            }
+        };
+
+        if (clubId) {
+            fetchClubName();
+        }
+    }, [clubId]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -42,6 +81,23 @@ export default function JoinClubPage({ params }) {
         if (age >= 14 && age <= 16) return "14-16";
         return null;
     };
+
+    // Auto-select events based on age when DOB changes
+    useEffect(() => {
+        if (form.dob) {
+            const age = getAge(form.dob);
+            if (age >= 4 && age <= 6) {
+                // 4-6 years: sparring only
+                setForm(prev => ({ ...prev, pattern: false, sparring: true }));
+            } else if (age >= 7 && age <= 15) {
+                // 7-15 years: both pattern and sparring
+                setForm(prev => ({ ...prev, pattern: true, sparring: true }));
+            } else {
+                // Reset if age is outside valid range
+                setForm(prev => ({ ...prev, pattern: false, sparring: false }));
+            }
+        }
+    }, [form.dob]);
 
     const calculateFee = (form) => {
         let fee = 0;
@@ -187,6 +243,10 @@ export default function JoinClubPage({ params }) {
         setSubmitting(false);
     };
 
+    // Get current age and category for display
+    const currentAge = form.dob ? getAge(form.dob) : null;
+    const isEventsDisabled = !form.dob || currentAge < 4 || currentAge > 15;
+
     if (submitted) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-black/80 text-white">
@@ -194,6 +254,16 @@ export default function JoinClubPage({ params }) {
             </div>
         );
     }
+
+    // Show loading state while fetching club name
+    if (loadingClub) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-black/80 text-white">
+                <p className="mb-4">Loading club information...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="relative min-h-screen h-screen md:h-auto bg-black/70 flex items-center justify-center">
             <form
@@ -312,8 +382,9 @@ export default function JoinClubPage({ params }) {
                             placeholder="Visual Martial Arts"
                             value={form.schoolClub}
                             onChange={handleChange}
+                            disabled={true}
                             required
-                            className="w-full text-black p-2 border border-black rounded"
+                            className="w-full text-black p-2 border border-black rounded bg-gray-100 cursor-not-allowed"
                         />
                         <label className="text-[12px] text-black font-semibold">Botanic Club Membership ID (Optional)</label>
                         <input
@@ -325,7 +396,14 @@ export default function JoinClubPage({ params }) {
                             className="w-full text-black p-2 border border-black rounded"
                         />
                         <div className="flex flex-col gap-2 ">
-                            <label className="text-[12px] text-black font-bold">Events</label>
+                            <label className="text-[12px] text-black font-bold">
+                                Events
+                                {currentAge && (
+                                    <span className="text-gray-600 font-normal ml-2">
+                                        (Age: {currentAge} - Auto-selected based on category)
+                                    </span>
+                                )}
+                            </label>
                             <div className="flex gap-4">
                                 <label className="flex items-center text-[12px] text-black gap-2">
                                     <input
@@ -333,9 +411,10 @@ export default function JoinClubPage({ params }) {
                                         name="pattern"
                                         checked={form.pattern || false}
                                         onChange={e => setForm({ ...form, pattern: e.target.checked })}
-                                        className="accent-black"
+                                        disabled={true}
+                                        className="accent-black disabled:opacity-50"
                                     />
-                                    Pattern
+                                    <span className="text-gray-400">Pattern</span>
                                 </label>
                                 <label className="flex items-center text-[12px] text-black gap-2">
                                     <input
@@ -343,11 +422,15 @@ export default function JoinClubPage({ params }) {
                                         name="sparring"
                                         checked={form.sparring || false}
                                         onChange={e => setForm({ ...form, sparring: e.target.checked })}
-                                        className="accent-black"
+                                        disabled={true}
+                                        className="accent-black disabled:opacity-50"
                                     />
-                                    Sparring
+                                    <span className="text-gray-400">Sparring</span>
                                 </label>
                             </div>
+                            {!form.dob && (
+                                <p className="text-[10px] text-gray-500">Please enter date of birth to select events</p>
+                            )}
                         </div>
                     </div>
                 </div>
