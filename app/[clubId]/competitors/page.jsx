@@ -272,7 +272,7 @@ export default function ClubCompetitorsPage({ params }) {
                                 <div className="flex flex-col gap-2 ">
                                     <label className="text-[12px] text-black font-bold">Events</label>
                                     <div className="flex gap-4">
-                                        {["Pattern", "Sparring"].map(eventName => {
+                                        {["pattern", "sparring"].map(eventName => {
                                             const eventsArr = (editValues.events || "")
                                                 .split(",")
                                                 .map(ev => ev.trim().toLowerCase())
