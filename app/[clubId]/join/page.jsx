@@ -190,16 +190,39 @@ export default function JoinClubPage({ params }) {
                 return;
             }
 
-            const { data: existing, error: selectError } = await supabase
+            // Check for duplicate ID number across all clubs
+            const { data: existingById, error: selectByIdError } = await supabase
                 .from("competitors")
-                .select("club_id")
-                .eq("club_id", clubId)
-                .eq("id_number", form.idNumber)
-                .maybeSingle();
+                .select("club_id, full_name, club_name")
+                .eq("id_number", form.idNumber);
 
-            if (selectError) throw selectError;
-            if (existing) {
-                setError("You have already registered for this club with this I/C or Passport No.");
+            if (selectByIdError) throw selectByIdError;
+            if (existingById && existingById.length > 0) {
+                const existingEntry = existingById[0];
+                if (existingEntry.club_id === clubId) {
+                    setError("You have already registered for this club with this I/C or Passport No.");
+                } else {
+                    setError(`This I/C or Passport No. is already registered with ${existingEntry.club_name}. Each participant can only register once.`);
+                }
+                setSubmitting(false);
+                return;
+            }
+
+            // Check for duplicate name and date of birth combination
+            const { data: existingByName, error: selectByNameError } = await supabase
+                .from("competitors")
+                .select("club_id, club_name, id_number")
+                .eq("full_name", form.fullName)
+                .eq("date_of_birth", form.dob);
+
+            if (selectByNameError) throw selectByNameError;
+            if (existingByName && existingByName.length > 0) {
+                const existingNameEntry = existingByName[0];
+                if (existingNameEntry.club_id === clubId) {
+                    setError("A participant with this name and date of birth is already registered for this club.");
+                } else {
+                    setError(`A participant with this name and date of birth is already registered with ${existingNameEntry.club_name}. Each participant can only register once.`);
+                }
                 setSubmitting(false);
                 return;
             }
@@ -250,9 +273,10 @@ export default function JoinClubPage({ params }) {
             if (insertError) throw insertError;
             setSubmitted(true);
         } catch (err) {
+            console.error("Submission error:", err);
             setError(
                 err.code === "23505"
-                    ? "You have already registered for this club with this I/C or Passport No."
+                    ? "A duplicate entry was detected. Please check your information and try again."
                     : `Submission failed. Please try again. ${err.message}`
             );
         }

@@ -157,7 +157,6 @@ export default function TeamDemoPage({ params }) {
             <div className="flex justify-center mt-2">
                 <span className="text-xs text-gray-600">Each team must contain 3 - 5 Members</span>
             </div>
-x
             {editMember && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
                     <div className="relative bg-white border border-black rounded-lg shadow-lg p-4 sm:p-6 w-[95vw] max-w-3xl flex flex-col items-center"
