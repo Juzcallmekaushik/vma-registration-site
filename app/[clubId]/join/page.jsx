@@ -82,7 +82,7 @@ export default function JoinClubPage({ params }) {
 
     const getCategory = (age) => {
         if (age >= 4 && age <= 6) return "4-6";
-        if (age >= 7 && age <= 9) return "7-19";
+        if (age >= 7 && age <= 9) return "7-9";
         if (age >= 10 && age <= 12) return "10-12";
         if (age >= 13 && age <= 15) return "14-15";
         return null;
@@ -127,8 +127,8 @@ export default function JoinClubPage({ params }) {
 
         const age = getAge(form.dob);
         const category = getCategory(age);
-        if (age > 16) {
-            setError("Age above 16 is not allowed for this event.");
+        if (age > 15) {
+            setError("Age above 15 is not allowed for this event.");
             setSubmitting(false);
             return;
         }
