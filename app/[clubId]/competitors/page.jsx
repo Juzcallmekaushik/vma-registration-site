@@ -44,6 +44,17 @@ export default function ClubCompetitorsPage({ params }) {
         }));
     };
 
+    const getAge = (dob) => {
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
     const handleSubmit = async () => {
         setSubmitting(true);
         
@@ -88,6 +99,28 @@ export default function ClubCompetitorsPage({ params }) {
                         schoolClub: clubName,
                     }),
                 });
+
+                const age = editValues.date_of_birth ? getAge(editValues.date_of_birth) : null;
+                if (age && age >= 4 && age <= 15) {
+                    try {
+                        await fetch("/api/add/add-age-categories", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                fullName: editValues.full_name,
+                                gender: editValues.gender,
+                                idNumber: editValues.id_number,
+                                dob: editValues.date_of_birth,
+                                age: age,
+                                height: editValues.height,
+                                weight: editValues.weight,
+                                clubName: clubName
+                            }),
+                        });
+                    } catch (err) {
+                        console.error("Error updating Age Categories sheet:", err);
+                    }
+                }
             } catch (err) {
                 console.error("Failed to update Google Sheets", err);
             }
@@ -375,6 +408,15 @@ export default function ClubCompetitorsPage({ params }) {
                                                             body: JSON.stringify({
                                                                 idNumber: editClub.id_number,
                                                                 schoolClub: clubData.name,
+                                                            }),
+                                                        });
+
+                                                        // Also try to delete from Age Categories sheet
+                                                        await fetch("/api/delete/delete-age-categories", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({
+                                                                idNumber: editClub.id_number,
                                                             }),
                                                         });
                                                     } catch (err) {

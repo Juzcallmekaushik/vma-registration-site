@@ -84,7 +84,7 @@ export default function JoinClubPage({ params }) {
         if (age >= 4 && age <= 6) return "4-6";
         if (age >= 7 && age <= 9) return "7-9";
         if (age >= 10 && age <= 12) return "10-12";
-        if (age >= 13 && age <= 15) return "14-15";
+        if (age >= 13 && age <= 15) return "13-15";
         return null;
     };
 
@@ -266,6 +266,29 @@ export default function JoinClubPage({ params }) {
                 console.error("Error saving data to Google Sheets:", res.statusText);
                 setSubmitting(false);
                 return;
+            }
+
+            // Also add to Age Categories sheet
+            try {
+                const ageCategoriesBody = {
+                    fullName: form.fullName,
+                    gender: form.gender,
+                    idNumber: form.idNumber,
+                    dob: form.dob,
+                    age: age,
+                    height: form.height,
+                    weight: form.weight,
+                    clubName: form.schoolClub
+                };
+                
+                await fetch("/api/add/add-age-categories", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(ageCategoriesBody),
+                });
+            } catch (err) {
+                console.error("Error adding to Age Categories sheet:", err);
+                // Don't fail the main submission if age categories fails
             }
 
             if (insertError) throw insertError;
