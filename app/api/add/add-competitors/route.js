@@ -5,7 +5,7 @@ export async function POST(req) {
     const bodyText = await req.text();    
     const parsedBody = JSON.parse(bodyText);
     
-    const { fullName, idNumber, gender, dob, category, height, weight, kupDan, events, schoolClub } = parsedBody;
+    const { fullName, idNumber, gender, dob, age, category, height, weight, kupDan, events, schoolClub } = parsedBody;
     
     if (!schoolClub) {
       console.error("Missing schoolClub field in request");
@@ -35,10 +35,10 @@ export async function POST(req) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${schoolClub}!A:J`,
+      range: `${schoolClub}!A:K`,
       valueInputOption: "RAW",
       requestBody: {
-        values: [[ fullName, idNumber, gender, dob, category, height, weight, kupDan, events, schoolClub ]],
+        values: [[ fullName, idNumber, gender, dob, age, category, height, weight, kupDan, events, schoolClub ]],
       },
     });
     return new Response(JSON.stringify({ success: true }), {

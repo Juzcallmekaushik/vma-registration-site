@@ -40,7 +40,7 @@ export async function POST(req) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${schoolClub}!T:Y`,
+      range: `${schoolClub}!U:Z`,
       valueInputOption: "RAW",
       requestBody: {
         values: [[ name, dob, gender, kup, idNumber, schoolClub]],
