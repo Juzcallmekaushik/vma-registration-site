@@ -149,7 +149,6 @@ export async function POST(req) {
             height,
             weight,
             clubName,
-            ageCategory
           ]
         ],
       },
