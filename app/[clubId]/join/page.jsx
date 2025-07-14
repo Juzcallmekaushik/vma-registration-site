@@ -82,24 +82,20 @@ export default function JoinClubPage({ params }) {
 
     const getCategory = (age) => {
         if (age >= 4 && age <= 6) return "4-6";
-        if (age >= 7 && age <= 10) return "7-10";
-        if (age >= 11 && age <= 13) return "11-13";
-        if (age >= 14 && age <= 16) return "14-16";
+        if (age >= 7 && age <= 9) return "7-19";
+        if (age >= 10 && age <= 12) return "10-12";
+        if (age >= 13 && age <= 15) return "14-15";
         return null;
     };
 
-    // Auto-select events based on age when DOB changes
     useEffect(() => {
         if (form.dob) {
             const age = getAge(form.dob);
             if (age >= 4 && age <= 6) {
-                // 4-6 years: sparring only
                 setForm(prev => ({ ...prev, pattern: false, sparring: true }));
             } else if (age >= 7 && age <= 15) {
-                // 7-15 years: both pattern and sparring
                 setForm(prev => ({ ...prev, pattern: true, sparring: true }));
             } else {
-                // Reset if age is outside valid range
                 setForm(prev => ({ ...prev, pattern: false, sparring: false }));
             }
         }
