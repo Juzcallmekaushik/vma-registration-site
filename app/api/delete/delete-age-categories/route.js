@@ -41,20 +41,37 @@ export async function POST(req) {
 
     const sheetId = ageCategoriesSheet.properties.sheetId;
 
-    // Get all data from Age Categories sheet
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: "Age Categories!A:I",
-    });
+    // Get all data from Age Categories sheet across all column ranges
+    const columnRanges = ["A:H", "J:Q", "S:Z", "AB:AI"];
+    let foundRow = null;
+    let foundRange = null;
 
-    const rows = response.data.values || [];
+    for (const range of columnRanges) {
+      try {
+        const response = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: `Age Categories!${range}`,
+        });
+
+        const rows = response.data.values || [];
+        
+        // Find the row with the matching ID number (column C in each range, index 2)
+        const rowIndex = rows.findIndex((row, index) => 
+          index > 1 && row && row[2] && row[2].toString().trim() === idNumber.toString().trim()
+        );
+        
+        if (rowIndex !== -1) {
+          foundRow = rowIndex;
+          foundRange = range;
+          break;
+        }
+      } catch (err) {
+        console.log(`Error checking range ${range}:`, err);
+        continue;
+      }
+    }
     
-    // Find the row with the matching ID number (column C, index 2)
-    const rowIndex = rows.findIndex((row, index) => 
-      index > 0 && row && row[2] && row[2].toString().trim() === idNumber.toString().trim()
-    );
-    
-    if (rowIndex === -1) {
+    if (foundRow === null) {
       return new Response(
         JSON.stringify({ 
           error: "Participant with ID number not found in Age Categories sheet",
@@ -64,24 +81,31 @@ export async function POST(req) {
       );
     }
 
-    // Delete the row (rowIndex is 0-based, but we need to account for the header)
-    await sheets.spreadsheets.batchUpdate({
+    // Get the sheet range data to rebuild without the deleted row
+    const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      requestBody: {
-        requests: [
-          {
-            deleteDimension: {
-              range: {
-                sheetId: sheetId,
-                dimension: "ROWS",
-                startIndex: rowIndex, // 0-based index
-                endIndex: rowIndex + 1,
-              },
-            },
-          },
-        ],
-      },
+      range: `Age Categories!${foundRange}`,
     });
+
+    const rows = response.data.values || [];
+    const updatedRows = rows.filter((row, index) => index !== foundRow);
+
+    // Clear the range and rewrite without the deleted row
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId,
+      range: `Age Categories!${foundRange}`,
+    });
+
+    if (updatedRows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `Age Categories!${foundRange}`,
+        valueInputOption: "RAW",
+        requestBody: {
+          values: updatedRows,
+        },
+      });
+    }
 
     return new Response(
       JSON.stringify({ 

@@ -103,10 +103,11 @@ export default function ClubCompetitorsPage({ params }) {
                 const age = editValues.date_of_birth ? getAge(editValues.date_of_birth) : null;
                 if (age && age >= 4 && age <= 15) {
                     try {
-                        await fetch("/api/add/add-age-categories", {
+                        await fetch("/api/update/update-age-categories", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
+                                oldIdNumber: editClub.id_number,
                                 fullName: editValues.full_name,
                                 gender: editValues.gender,
                                 idNumber: editValues.id_number,

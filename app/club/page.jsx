@@ -129,7 +129,7 @@ export default function ClubHomePage() {
                     className="flex-1 bg-gray-200 rounded-lg flex items-center justify-center min-h-[120px] font-bold text-sm text-black text-center hover:bg-gray-300 transition"
                 >
                     TEAM DEMONSTRATION
-                </a>                
+                </a>
                 <a
                     href={`/${club?.club_id?.toLowerCase()}/payment`}
                     className="flex-1 bg-gray-200 rounded-lg flex items-center justify-center min-h-[120px] font-bold text-sm text-black text-center hover:bg-gray-300 transition"

@@ -5,12 +5,12 @@ export async function POST(req) {
     const bodyText = await req.text();    
     const parsedBody = JSON.parse(bodyText);
     
-    const { rowIndex, fullName, gender, idNumber, dob, age, height, weight, clubName } = parsedBody;
+    const { oldIdNumber, fullName, gender, idNumber, dob, age, height, weight, clubName } = parsedBody;
     
-    if (!clubName || rowIndex === undefined) {
+    if (!clubName || !oldIdNumber) {
       console.error("Missing required fields in request");
       return new Response(
-        JSON.stringify({ error: "Missing required fields: clubName and rowIndex are required" }),
+        JSON.stringify({ error: "Missing required fields: clubName and oldIdNumber are required" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -19,25 +19,6 @@ export async function POST(req) {
       console.error("Missing required participant fields in request");
       return new Response(
         JSON.stringify({ error: "Missing required fields: fullName, idNumber, and age are required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Determine age category based on age
-    let ageCategory = "";
-    const participantAge = parseInt(age);
-    
-    if (participantAge >= 4 && participantAge <= 6) {
-      ageCategory = "A-H";
-    } else if (participantAge >= 7 && participantAge <= 9) {
-      ageCategory = "J-Q";
-    } else if (participantAge >= 10 && participantAge <= 12) {
-      ageCategory = "S-Z";
-    } else if (participantAge >= 13 && participantAge <= 15) {
-      ageCategory = "AB-AI";
-    } else {
-      return new Response(
-        JSON.stringify({ error: "Age must be between 4-15 years for age categories" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -53,12 +34,45 @@ export async function POST(req) {
     const sheets = google.sheets({ version: "v4", auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // Update the specific row in the Age Categories sheet
-    const range = `Age Categories!A${rowIndex + 1}:I${rowIndex + 1}`;
+    // First, try to delete the old entry by ID number
+    try {
+      await fetch("/api/delete/delete-age-categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idNumber: oldIdNumber }),
+      });
+    } catch (err) {
+      console.log("Could not delete old entry (may not exist):", err);
+    }
+
+    // Then add the new entry using the add API logic
+    const participantAge = parseInt(age);
+    let columnRange = "";
+    let ageCategory = "";
     
-    await sheets.spreadsheets.values.update({
+    if (participantAge >= 4 && participantAge <= 6) {
+      columnRange = "A:H";
+      ageCategory = "A-H";
+    } else if (participantAge >= 7 && participantAge <= 9) {
+      columnRange = "J:Q";
+      ageCategory = "J-Q";
+    } else if (participantAge >= 10 && participantAge <= 12) {
+      columnRange = "S:Z";
+      ageCategory = "S-Z";
+    } else if (participantAge >= 13 && participantAge <= 15) {
+      columnRange = "AB:AI";
+      ageCategory = "AB-AI";
+    } else {
+      return new Response(
+        JSON.stringify({ error: "Age must be between 4-15 years for age categories" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Add the updated participant data to the appropriate column range
+    await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: range,
+      range: `Age Categories!${columnRange}`,
       valueInputOption: "RAW",
       requestBody: {
         values: [
@@ -71,7 +85,6 @@ export async function POST(req) {
             height,
             weight,
             clubName,
-            ageCategory
           ]
         ],
       },

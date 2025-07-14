@@ -78,65 +78,178 @@ export async function POST(req) {
 
       const newSheetId = addSheetRes.data.replies[0].addSheet.properties.sheetId;
 
-      // Add headers to the new sheet
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: "Age Categories!A1:I1",
-        valueInputOption: "RAW",
-        requestBody: {
-          values: [
-            [
-              "Name",
-              "Gender", 
-              "ID Number",
-              "Date of Birth",
-              "Age",
-              "Height",
-              "Weight",
-              "Club Name",
-            ]
-          ],
+      // Add headers for age categories in their respective column ranges
+      const headerUpdates = [
+        // 4-6 years: Columns A-H
+        {
+          range: "Age Categories!A1:H1",
+          values: [["4-6 YEARS (A-H)", "", "", "", "", "", "", ""]]
         },
-      });
+        {
+          range: "Age Categories!A2:H2", 
+          values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
+        },
+        // 7-9 years: Columns J-Q  
+        {
+          range: "Age Categories!J1:Q1",
+          values: [["7-9 YEARS (J-Q)", "", "", "", "", "", "", ""]]
+        },
+        {
+          range: "Age Categories!J2:Q2",
+          values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
+        },
+        // 10-12 years: Columns S-Z
+        {
+          range: "Age Categories!S1:Z1", 
+          values: [["10-12 YEARS (S-Z)", "", "", "", "", "", "", ""]]
+        },
+        {
+          range: "Age Categories!S2:Z2",
+          values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
+        },
+        // 13-15 years: Columns AB-AI
+        {
+          range: "Age Categories!AB1:AI1",
+          values: [["13-15 YEARS (AB-AI)", "", "", "", "", "", "", ""]]
+        },
+        {
+          range: "Age Categories!AB2:AI2", 
+          values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
+        }
+      ];
 
-      // Format the header row
-      await sheets.spreadsheets.batchUpdate({
-        spreadsheetId,
-        requestBody: {
-          requests: [
-            {
-              repeatCell: {
-                range: {
-                  sheetId: newSheetId,
-                  startRowIndex: 0,
-                  endRowIndex: 1,
-                  startColumnIndex: 0,
-                  endColumnIndex: 9,
-                },
-                cell: {
-                  userEnteredFormat: {
-                    backgroundColor: {
-                      red: 0.9,
-                      green: 0.9,
-                      blue: 0.9,
-                    },
-                    textFormat: {
-                      bold: true,
-                    },
-                  },
-                },
-                fields: "userEnteredFormat(backgroundColor,textFormat)",
+      // Apply all header updates
+      for (const update of headerUpdates) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: update.range,
+          valueInputOption: "RAW",
+          requestBody: { values: update.values },
+        });
+      }
+
+      // Format the header rows
+      const formatRequests = [
+        // Format title rows (row 1) for each age group
+        {
+          repeatCell: {
+            range: {
+              sheetId: newSheetId,
+              startRowIndex: 0,
+              endRowIndex: 1,
+              startColumnIndex: 0, // A
+              endColumnIndex: 8,   // H
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.7, green: 0.9, blue: 0.7 },
+                textFormat: { bold: true, fontSize: 12 },
+                horizontalAlignment: "CENTER"
               },
             },
-          ],
+            fields: "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+          },
         },
+        {
+          repeatCell: {
+            range: {
+              sheetId: newSheetId,
+              startRowIndex: 0,
+              endRowIndex: 1,
+              startColumnIndex: 9, // J
+              endColumnIndex: 17,  // Q
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.9, green: 0.7, blue: 0.7 },
+                textFormat: { bold: true, fontSize: 12 },
+                horizontalAlignment: "CENTER"
+              },
+            },
+            fields: "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+          },
+        },
+        {
+          repeatCell: {
+            range: {
+              sheetId: newSheetId,
+              startRowIndex: 0,
+              endRowIndex: 1,
+              startColumnIndex: 18, // S
+              endColumnIndex: 26,   // Z
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.7, green: 0.7, blue: 0.9 },
+                textFormat: { bold: true, fontSize: 12 },
+                horizontalAlignment: "CENTER"
+              },
+            },
+            fields: "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+          },
+        },
+        {
+          repeatCell: {
+            range: {
+              sheetId: newSheetId,
+              startRowIndex: 0,
+              endRowIndex: 1,
+              startColumnIndex: 27, // AB
+              endColumnIndex: 35,   // AI
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.9, green: 0.9, blue: 0.7 },
+                textFormat: { bold: true, fontSize: 12 },
+                horizontalAlignment: "CENTER"
+              },
+            },
+            fields: "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+          },
+        },
+        // Format column header rows (row 2) for all groups
+        {
+          repeatCell: {
+            range: {
+              sheetId: newSheetId,
+              startRowIndex: 1,
+              endRowIndex: 2,
+              startColumnIndex: 0,
+              endColumnIndex: 35,
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                textFormat: { bold: true },
+              },
+            },
+            fields: "userEnteredFormat(backgroundColor,textFormat)",
+          },
+        },
+      ];
+
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: { requests: formatRequests },
       });
     }
 
-    // Add the participant data to the Age Categories sheet
+    // Determine the column range based on age category
+    let columnRange = "";
+    if (participantAge >= 4 && participantAge <= 6) {
+      columnRange = "A:H";  // A-H columns
+    } else if (participantAge >= 7 && participantAge <= 9) {
+      columnRange = "J:Q";  // J-Q columns  
+    } else if (participantAge >= 10 && participantAge <= 12) {
+      columnRange = "S:Z";  // S-Z columns
+    } else if (participantAge >= 13 && participantAge <= 15) {
+      columnRange = "AB:AI"; // AB-AI columns
+    }
+
+    // Add the participant data to the appropriate column range
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "Age Categories!A:I",
+      range: `Age Categories!${columnRange}`,
       valueInputOption: "RAW",
       requestBody: {
         values: [
