@@ -1,5 +1,6 @@
 import { Inter, DM_Sans } from "next/font/google";
 import { Providers } from "./providers";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const inter = Inter({
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning={true}
       >
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
