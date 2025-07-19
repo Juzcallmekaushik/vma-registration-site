@@ -6,7 +6,6 @@ export async function POST(req) {
     const parsedBody = JSON.parse(bodyText);
     
     const { fullName, idNumber, gender, dob, age, category, height, weight, kupDan, events, schoolClub, schoolName } = parsedBody;
-    console.log(parsedBody);
     if (!schoolClub) {
       console.error("Missing schoolClub field in request");
       return new Response(
