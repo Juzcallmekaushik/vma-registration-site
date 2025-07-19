@@ -7,7 +7,6 @@ export async function POST(req) {
     
     const { name, dob, gender, kup, idNumber, schoolClub } = JSON.parse(bodyText);
     
-    // Validate required fields
     if (!schoolClub) {
       console.error("Missing schoolClub field in request");
       return new Response(
@@ -40,10 +39,10 @@ export async function POST(req) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${schoolClub}!U:Z`,
+      range: `${schoolClub}!V:AA`,
       valueInputOption: "RAW",
       requestBody: {
-        values: [[ name, dob, gender, kup, idNumber, schoolClub]],
+        values: [[ name, dob, gender, kup, idNumber, schoolClub ]],
       },
     });
 

@@ -39,7 +39,7 @@ export async function POST(req) {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${schoolClub}!U:Z`,
+      range: `${schoolClub}!V:AA`,
     });
 
     const rows = response.data.values || [];
@@ -57,7 +57,7 @@ export async function POST(req) {
 
     const remainingDataResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${schoolClub}!T${actualRowNumber + 1}:Y`,
+      range: `${schoolClub}!V${actualRowNumber + 1}:AA`,
     });
 
     const remainingRows = remainingDataResponse.data.values || [];
@@ -66,13 +66,13 @@ export async function POST(req) {
     if (totalDemoRows > 0) {
       await sheets.spreadsheets.values.clear({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
-        range: `${schoolClub}!T${actualRowNumber}:Y${actualRowNumber + totalDemoRows - 1}`,
+        range: `${schoolClub}!V${actualRowNumber}:AA${actualRowNumber + totalDemoRows - 1}`,
       });
 
       if (remainingRows.length > 0) {
         await sheets.spreadsheets.values.update({
           spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: `${schoolClub}!T${actualRowNumber}:Y${actualRowNumber + remainingRows.length - 1}`,
+          range: `${schoolClub}!V${actualRowNumber}:AA${actualRowNumber + remainingRows.length - 1}`,
           valueInputOption: "RAW",
           requestBody: {
             values: remainingRows,

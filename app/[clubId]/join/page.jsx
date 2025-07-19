@@ -103,7 +103,8 @@ export default function JoinClubPage({ params }) {
 
     const calculateFee = (form) => {
         let fee = 0;
-        const isBrc = form.brcmember && form.brcmember.trim() !== "";
+        const brcPattern = /^B\d{5}-\d$/;
+        const isBrc = form.brcmember && brcPattern.test(form.brcmember.trim());
         const hasPattern = form.pattern;
         const hasSparring = form.sparring;
 
@@ -223,6 +224,10 @@ export default function JoinClubPage({ params }) {
                 return;
             }
 
+            const school = form.schoolCode && form.schoolCode.trim() !== ""
+                ? `${form.schoolName} (${form.schoolCode})`
+                : form.schoolName;
+
             const { error: insertError } = await supabase.from("competitors").insert([
                 {
                     club_id: clubId,
@@ -239,9 +244,10 @@ export default function JoinClubPage({ params }) {
                     club_name: form.schoolClub,
                     brcmember: form.brcmember,
                     fee: fee,
+                    school: school,
                 },
             ]);
-            
+
             const requestBody = {
                 fullName: form.fullName,
                 idNumber: form.idNumber,
@@ -254,6 +260,7 @@ export default function JoinClubPage({ params }) {
                 kupDan: form.kupDan,
                 events,
                 schoolClub: form.schoolClub,
+                schoolName: school,
             };
             
             const res = await fetch("/api/add/add-competitors", {
@@ -288,7 +295,6 @@ export default function JoinClubPage({ params }) {
                 });
             } catch (err) {
                 console.error("Error adding to Age Categories sheet:", err);
-                // Don't fail the main submission if age categories fails
             }
 
             if (insertError) throw insertError;
@@ -304,7 +310,6 @@ export default function JoinClubPage({ params }) {
         setSubmitting(false);
     };
 
-    // Get current age and category for display
     const currentAge = form.dob ? getAge(form.dob) : null;
     const isEventsDisabled = !form.dob || currentAge < 4 || currentAge > 15;
 
@@ -316,7 +321,6 @@ export default function JoinClubPage({ params }) {
         );
     }
 
-    // Show loading state while fetching club name
     if (loadingClub) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-black/80 text-white">
@@ -330,174 +334,196 @@ export default function JoinClubPage({ params }) {
             <form
                 onSubmit={handleSubmit}
                 className="relative bg-white border border-black rounded-lg shadow-lg p-4 sm:p-6 w-[95vw] max-w-3xl flex flex-col items-center"
-                style={{ maxHeight: "95vh", minHeight: "90vh" }}
+                style={{ maxHeight: "90vh", minHeight: "70vh" }}
             >
-
                 <h2 className="text-md sm:text-md font-bold text-black text-center w-full">
                     VMA Junior Championship 2025 Registration
                 </h2>
-                <div className="flex flex-col mt-3 md:flex-row w-full gap-6">
-                    <div className="flex-1 flex flex-col gap-1 order-1">
-                        <label className="text-[12px] text-black font-semibold">Full Name</label>
-                        <input
-                            type="text"
-                            name="fullName"
-                            placeholder="John Doe"
-                            value={form.fullName}
-                            onChange={handleChange}
-                            required
-                            className="w-full text-black p-2 border border-black rounded"
-                        />
-                        <label className="text-[12px] text-black font-semibold">Date of Birth</label>
-                        <input
-                            type="date"
-                            name="dob"
-                            value={form.dob}
-                            onChange={handleChange}
-                            required
-                            className="w-full text-black p-2 border border-black rounded"
-                        />
-                        <label className="text-[12px] text-black font-semibold">Gender</label>
-                        <div className="flex gap-4 mb-2">
-                            <label className="flex items-center text-[12px] text-black gap-2">
-                                <input
-                                    type="checkbox"
-                                    name="gender"
-                                    checked={form.gender === "Male"}
-                                    onChange={() =>
-                                        setForm({ ...form, gender: form.gender === "Male" ? "" : "Male" })
-                                    }
-                                    className="accent-black"
-                                />
-                                Male
-                            </label>
-                            <label className="flex items-center text-[12px] text-black gap-2">
-                                <input
-                                    type="checkbox"
-                                    name="gender"
-                                    checked={form.gender === "Female"}
-                                    onChange={() =>
-                                        setForm({ ...form, gender: form.gender === "Female" ? "" : "Female" })
-                                    }
-                                    className="accent-black"
-                                />
-                                Female
-                            </label>
-                        </div>
-                        <label className="text-[12px] text-black font-semibold">I/C or Passport No</label>
-                        <input
-                            type="text"
-                            name="idNumber"
-                            placeholder="990101-14-5679"
-                            value={form.idNumber}
-                            onChange={handleChange}
-                            required
-                            className="w-full text-black p-2 border border-black rounded"
-                        />
-                        <label className="text-[12px] text-black font-semibold">Height (CM)</label>
-                        <input
-                            type="number"
-                            name="height"
-                            placeholder="168 cm"
-                            value={form.height}
-                            onChange={handleChange}
-                            required
-                            className="w-full text-black p-2 border border-black rounded"
-                        />
-                    </div>
-                    <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
-                        <label className="text-[12px] text-black font-semibold">Weight (KG)</label>
-                        <input
-                            type="number"
-                            name="weight"
-                            placeholder="50 Kg"
-                            value={form.weight}
-                            onChange={handleChange}
-                            required
-                            className="w-full text-black p-2 border border-black rounded"
-                        />
-                        <label className="text-[12px] text-black font-semibold">Kup</label>
-                        <select
-                            name="kupDan"
-                            value={form.kupDan}
-                            onChange={handleChange}
-                            required
-                            className="w-full text-black p-2 border border-black rounded"
-                        >
-                            <option value="" disabled>Select Kup</option>
-                            <option value="1st Kup">1st Kup (Red-Black)</option>
-                            <option value="2nd Kup">2nd Kup (Red)</option>
-                            <option value="3rd Kup">3rd Kup (Blue-Red)</option>
-                            <option value="4th Kup">4th Kup (Blue)</option>
-                            <option value="5th Kup">5th Kup (Green-Blue)</option>
-                            <option value="6th Kup">6th Kup (Green)</option>
-                            <option value="7th Kup">7th Kup (Yellow-Green)</option>
-                            <option value="8th Kup">8th Kup (Yellow)</option>
-                            <option value="9th Kup">9th Kup (White-Yellow)</option>
-                            <option value="10th Kup">10th Kup (White)</option>
-                        </select>
-                        <label className="text-[12px] text-black font-semibold">School/Club</label>
-                        <input
-                            type="text"
-                            name="schoolClub"
-                            placeholder="Visual Martial Arts"
-                            value={form.schoolClub}
-                            onChange={handleChange}
-                            disabled={true}
-                            required
-                            className="w-full text-black p-2 border border-black rounded bg-gray-100 cursor-not-allowed"
-                        />
-                        <label className="text-[12px] text-black font-semibold">Botanic Club Membership ID (Optional)</label>
-                        <input
-                            type="text"
-                            name="brcmember"
-                            placeholder="B01234-0"
-                            value={form.brcmember}
-                            onChange={handleChange}
-                            className="w-full text-black p-2 border border-black rounded"
-                        />
-                        <div className="flex flex-col gap-2 ">
-                            <label className="text-[12px] text-black font-bold">
-                                Events
-                                {currentAge && (
-                                    <span className="text-gray-600 font-normal ml-2">
-                                        (Age: {currentAge} - Auto-selected based on category)
-                                    </span>
-                                )}
-                            </label>
-                            <div className="flex gap-4">
+                <div className="flex-1 w-full overflow-y-auto" style={{ maxHeight: "60vh" }}>
+                    <div className="flex flex-col mt-3 md:flex-row w-full gap-6">
+                        <div className="flex-1 flex flex-col gap-1 order-1">
+                            <label className="text-[12px] text-black font-semibold">Full Name</label>
+                            <input
+                                type="text"
+                                name="fullName"
+                                placeholder="John Doe"
+                                value={form.fullName}
+                                onChange={handleChange}
+                                required
+                                className="w-full text-black p-2 border border-black rounded"
+                            />
+                            <label className="text-[12px] text-black font-semibold">Date of Birth</label>
+                            <input
+                                type="date"
+                                name="dob"
+                                value={form.dob}
+                                onChange={handleChange}
+                                required
+                                className="w-full text-black p-2 border border-black rounded"
+                            />
+                            <label className="text-[12px] text-black font-semibold">Gender</label>
+                            <div className="flex gap-4 mb-2">
                                 <label className="flex items-center text-[12px] text-black gap-2">
                                     <input
                                         type="checkbox"
-                                        name="pattern"
-                                        checked={form.pattern || false}
-                                        onChange={e => setForm({ ...form, pattern: e.target.checked })}
-                                        disabled={true}
-                                        className="accent-black disabled:opacity-50"
+                                        name="gender"
+                                        checked={form.gender === "Male"}
+                                        onChange={() =>
+                                            setForm({ ...form, gender: form.gender === "Male" ? "" : "Male" })
+                                        }
+                                        required={form.gender !== "Female"}
+                                        className="accent-black"
                                     />
-                                    <span className="text-gray-400">Pattern</span>
+                                    Male
                                 </label>
                                 <label className="flex items-center text-[12px] text-black gap-2">
                                     <input
                                         type="checkbox"
-                                        name="sparring"
-                                        checked={form.sparring || false}
-                                        onChange={e => setForm({ ...form, sparring: e.target.checked })}
-                                        disabled={true}
-                                        className="accent-black disabled:opacity-50"
+                                        name="gender"
+                                        checked={form.gender === "Female"}
+                                        onChange={() =>
+                                            setForm({ ...form, gender: form.gender === "Female" ? "" : "Female" })
+                                        }
+                                        required={form.gender !== "Male"}
+                                        className="accent-black"
                                     />
-                                    <span className="text-gray-400">Sparring</span>
+                                    Female
                                 </label>
                             </div>
-                            {!form.dob && (
-                                <p className="text-[10px] text-gray-500">Please enter date of birth to select events</p>
-                            )}
+                            <label className="text-[12px] text-black font-semibold">I/C or Passport No</label>
+                            <input
+                                type="text"
+                                name="idNumber"
+                                placeholder="990101-14-5679"
+                                value={form.idNumber}
+                                onChange={handleChange}
+                                required
+                                className="w-full text-black p-2 border border-black rounded"
+                            />
+                            <label className="text-[12px] text-black font-semibold">Height (CM)</label>
+                            <input
+                                type="number"
+                                name="height"
+                                placeholder="168 cm"
+                                value={form.height}
+                                onChange={handleChange}
+                                required
+                                className="w-full text-black p-2 border border-black rounded"
+                            />
+                            <label className="text-[12px] text-black font-semibold">Weight (KG)</label>
+                            <input
+                                type="number"
+                                name="weight"
+                                placeholder="50 Kg"
+                                value={form.weight}
+                                onChange={handleChange}
+                                required
+                                className="w-full text-black p-2 border border-black rounded"
+                            />                     
+                        </div>
+                        <div className="flex-1 flex flex-col gap-1 mt-6 md:mt-0 order-2 md:order-3">
+                            <label className="text-[12px] text-black font-semibold">Kup</label>
+                            <select
+                                name="kupDan"
+                                value={form.kupDan}
+                                onChange={handleChange}
+                                required
+                                className="w-full text-black p-2 border border-black rounded"
+                            >
+                                <option value="" disabled>Select Kup</option>
+                                <option value="1st Kup">1st Kup (Red-Black)</option>
+                                <option value="2nd Kup">2nd Kup (Red)</option>
+                                <option value="3rd Kup">3rd Kup (Blue-Red)</option>
+                                <option value="4th Kup">4th Kup (Blue)</option>
+                                <option value="5th Kup">5th Kup (Green-Blue)</option>
+                                <option value="6th Kup">6th Kup (Green)</option>
+                                <option value="7th Kup">7th Kup (Yellow-Green)</option>
+                                <option value="8th Kup">8th Kup (Yellow)</option>
+                                <option value="9th Kup">9th Kup (White-Yellow)</option>
+                                <option value="10th Kup">10th Kup (White)</option>
+                            </select>                           
+                            <label className="text-[12px] text-black font-semibold">Club</label>
+                            <input
+                                type="text"
+                                name="club"
+                                placeholder="Visual Martial Arts"
+                                value={form.schoolClub}
+                                onChange={handleChange}
+                                disabled={true}
+                                required
+                                className="w-full text-black p-2 border border-black rounded bg-gray-100 cursor-not-allowed"
+                            />
+                            <label className="text-[12px] text-black font-semibold">School Name</label>
+                            <input
+                                type="text"
+                                name="schoolName"
+                                placeholder="SMK Seafield"
+                                value={form.schoolName}
+                                onChange={handleChange}
+                                required
+                                className="w-full text-black p-2 border border-black rounded"
+                            />
+                            <label className="text-[12px] text-black font-semibold">School Code (for Government Schools only)</label>
+                            <input
+                                type="text"
+                                name="schoolCode"
+                                placeholder="BEA1234"
+                                value={form.schoolCode}
+                                onChange={handleChange}
+                                className="w-full text-black p-2 border border-black rounded"
+                            />                        
+                            <label className="text-[12px] text-black font-semibold">Botanic Club Membership ID (Optional)</label>
+                            <input
+                                type="text"
+                                name="brcmember"
+                                placeholder="B01234-0"
+                                value={form.brcmember}
+                                onChange={handleChange}
+                                className="w-full text-black p-2 border border-black rounded"
+                            />
+                            <div className="flex flex-col gap-2 ">
+                                <label className="text-[12px] text-black font-bold">
+                                    Events
+                                    {currentAge && (
+                                        <span className="text-gray-600 font-normal ml-2">
+                                            (Age: {currentAge} - Auto-selected based on category)
+                                        </span>
+                                    )}
+                                </label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center text-[12px] text-black gap-2">
+                                        <input
+                                            type="checkbox"
+                                            name="pattern"
+                                            checked={form.pattern || false}
+                                            onChange={e => setForm({ ...form, pattern: e.target.checked })}
+                                            disabled={true}
+                                            className="accent-black disabled:opacity-50"
+                                        />
+                                        <span className="text-gray-400">Pattern</span>
+                                    </label>
+                                    <label className="flex items-center text-[12px] text-black gap-2">
+                                        <input
+                                            type="checkbox"
+                                            name="sparring"
+                                            checked={form.sparring || false}
+                                            onChange={e => setForm({ ...form, sparring: e.target.checked })}
+                                            disabled={true}
+                                            className="accent-black disabled:opacity-50"
+                                        />
+                                        <span className="text-gray-400">Sparring</span>
+                                    </label>
+                                </div>
+                                {!form.dob && (
+                                    <p className="text-[10px] text-gray-500">Please enter date of birth to select events</p>
+                                )}
+                            </div>
                         </div>
                     </div>
+                    <div className="w-full border-t border-white my-4" />
+                    {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
                 </div>
-                <div className="w-full border-t border-white my-4" />
-                {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-                <div className="w-full flex justify-center">
+                <div className="w-full flex justify-center mt-4">
                     <button
                         type="submit"
                         className={`w-48 bg-black text-white font-bold py-2 rounded hover:bg-gray-800 ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}

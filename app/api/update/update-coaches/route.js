@@ -48,7 +48,7 @@ export async function POST(req) {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${schoolClub}!M:S`,
+      range: `${schoolClub}!N:T`,
     });
 
     const rows = response.data.values || [];
@@ -65,7 +65,7 @@ export async function POST(req) {
     const actualRowNumber = rowIndex + 1;
     await sheets.spreadsheets.values.update({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${schoolClub}!L${actualRowNumber}:R${actualRowNumber}`,
+      range: `${schoolClub}!N${actualRowNumber}:T${actualRowNumber}`,
       valueInputOption: "RAW",
       requestBody: {
         values: [[fullName, dob, gender, phoneNumber, idNumber, tagType, schoolClub]],
