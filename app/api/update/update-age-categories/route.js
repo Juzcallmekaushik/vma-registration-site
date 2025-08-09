@@ -51,17 +51,17 @@ export async function POST(req) {
     let ageCategory = "";
     
     if (participantAge >= 4 && participantAge <= 6) {
-      columnRange = "A:H";
-      ageCategory = "A-H";
+      columnRange = "A:I";
+      ageCategory = "A-I";
     } else if (participantAge >= 7 && participantAge <= 9) {
-      columnRange = "J:Q";
-      ageCategory = "J-Q";
+      columnRange = "K:S";
+      ageCategory = "K-S";
     } else if (participantAge >= 10 && participantAge <= 12) {
-      columnRange = "S:Z";
-      ageCategory = "S-Z";
+      columnRange = "U:AC";
+      ageCategory = "U-AC";
     } else if (participantAge >= 13 && participantAge <= 15) {
-      columnRange = "AB:AI";
-      ageCategory = "AB-AI";
+      columnRange = "AE:AM";
+      ageCategory = "AE-AM";
     } else {
       return new Response(
         JSON.stringify({ error: "Age must be between 4-15 years for age categories" }),

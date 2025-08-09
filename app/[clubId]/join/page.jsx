@@ -282,6 +282,7 @@ export default function JoinClubPage({ params }) {
                     gender: form.gender,
                     idNumber: form.idNumber,
                     dob: form.dob,
+                    kup: form.kupDan,
                     age: age,
                     height: form.height,
                     weight: form.weight,

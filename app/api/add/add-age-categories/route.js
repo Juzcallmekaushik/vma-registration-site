@@ -5,7 +5,7 @@ export async function POST(req) {
     const bodyText = await req.text();    
     const parsedBody = JSON.parse(bodyText);
     
-    const { fullName, gender, idNumber, dob, age, height, weight, clubName } = parsedBody;
+    const { fullName, gender, idNumber, dob, kup, age, height, weight, clubName } = parsedBody;
     
     if (!clubName) {
       console.error("Missing clubName field in request");
@@ -28,13 +28,13 @@ export async function POST(req) {
     const participantAge = parseInt(age);
     
     if (participantAge >= 4 && participantAge <= 6) {
-      ageCategory = "A-H";
+      ageCategory = "A-I";
     } else if (participantAge >= 7 && participantAge <= 9) {
-      ageCategory = "J-Q";
+      ageCategory = "K-S";
     } else if (participantAge >= 10 && participantAge <= 12) {
-      ageCategory = "S-Z";
+      ageCategory = "U-AC";
     } else if (participantAge >= 13 && participantAge <= 15) {
-      ageCategory = "AB-AI";
+      ageCategory = "AE-AM";
     } else {
       return new Response(
         JSON.stringify({ error: "Age must be between 4-15 years for age categories" }),
@@ -82,38 +82,38 @@ export async function POST(req) {
       const headerUpdates = [
         // 4-6 years: Columns A-H
         {
-          range: "Age Categories!A1:H1",
-          values: [["4-6 YEARS (A-H)", "", "", "", "", "", "", ""]]
+          range: "Age Categories!A1:I1",
+          values: [["4-6 YEARS (A-I)", "", "", "", "", "", "", ""]]
         },
         {
-          range: "Age Categories!A2:H2", 
+          range: "Age Categories!A2:I2", 
           values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
         },
-        // 7-9 years: Columns J-Q  
+        // 7-9 years: Columns K-S  
         {
-          range: "Age Categories!J1:Q1",
-          values: [["7-9 YEARS (J-Q)", "", "", "", "", "", "", ""]]
+          range: "Age Categories!K1:S1",
+          values: [["7-9 YEARS (K-S)", "", "", "", "", "", "", ""]]
         },
         {
-          range: "Age Categories!J2:Q2",
+          range: "Age Categories!K2:S2",
           values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
         },
         // 10-12 years: Columns S-Z
         {
-          range: "Age Categories!S1:Z1", 
-          values: [["10-12 YEARS (S-Z)", "", "", "", "", "", "", ""]]
+          range: "Age Categories!U1:AC1", 
+          values: [["10-12 YEARS (U-AC)", "", "", "", "", "", "", ""]]
         },
         {
-          range: "Age Categories!S2:Z2",
+          range: "Age Categories!U2:AC2",
           values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
         },
         // 13-15 years: Columns AB-AI
         {
-          range: "Age Categories!AB1:AI1",
-          values: [["13-15 YEARS (AB-AI)", "", "", "", "", "", "", ""]]
+          range: "Age Categories!AE1:AM1",
+          values: [["13-15 YEARS (AE-AM)", "", "", "", "", "", "", ""]]
         },
         {
-          range: "Age Categories!AB2:AI2", 
+          range: "Age Categories!AE2:AM2", 
           values: [["Name", "Gender", "ID Number", "DOB", "Age", "Height", "Weight", "Club"]]
         }
       ];
@@ -138,7 +138,7 @@ export async function POST(req) {
               startRowIndex: 0,
               endRowIndex: 1,
               startColumnIndex: 0, // A
-              endColumnIndex: 8,   // H
+              endColumnIndex: 9,   // I
             },
             cell: {
               userEnteredFormat: {
@@ -156,8 +156,8 @@ export async function POST(req) {
               sheetId: newSheetId,
               startRowIndex: 0,
               endRowIndex: 1,
-              startColumnIndex: 9, // J
-              endColumnIndex: 17,  // Q
+              startColumnIndex: 10, // K
+              endColumnIndex: 19,   // S
             },
             cell: {
               userEnteredFormat: {
@@ -175,8 +175,8 @@ export async function POST(req) {
               sheetId: newSheetId,
               startRowIndex: 0,
               endRowIndex: 1,
-              startColumnIndex: 18, // S
-              endColumnIndex: 26,   // Z
+              startColumnIndex: 20, // U
+              endColumnIndex: 29,   // AC
             },
             cell: {
               userEnteredFormat: {
@@ -194,8 +194,8 @@ export async function POST(req) {
               sheetId: newSheetId,
               startRowIndex: 0,
               endRowIndex: 1,
-              startColumnIndex: 27, // AB
-              endColumnIndex: 35,   // AI
+              startColumnIndex: 30, // AE
+              endColumnIndex: 39,   // AM
             },
             cell: {
               userEnteredFormat: {
@@ -215,7 +215,7 @@ export async function POST(req) {
               startRowIndex: 1,
               endRowIndex: 2,
               startColumnIndex: 0,
-              endColumnIndex: 35,
+              endColumnIndex: 39,
             },
             cell: {
               userEnteredFormat: {
@@ -237,13 +237,13 @@ export async function POST(req) {
     // Determine the column range based on age category
     let columnRange = "";
     if (participantAge >= 4 && participantAge <= 6) {
-      columnRange = "A:H";  // A-H columns
+      columnRange = "A:I";  // A-I columns
     } else if (participantAge >= 7 && participantAge <= 9) {
-      columnRange = "J:Q";  // J-Q columns  
+      columnRange = "K:S";  // K-S columns  
     } else if (participantAge >= 10 && participantAge <= 12) {
-      columnRange = "S:Z";  // S-Z columns
+      columnRange = "U:AC";  // U-AC columns
     } else if (participantAge >= 13 && participantAge <= 15) {
-      columnRange = "AB:AI"; // AB-AI columns
+      columnRange = "AE:AM"; // AE-AM columns
     }
 
     // Add the participant data to the appropriate column range
@@ -258,6 +258,7 @@ export async function POST(req) {
             gender,
             idNumber,
             dob,
+            kup,
             age,
             height,
             weight,

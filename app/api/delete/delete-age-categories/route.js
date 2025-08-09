@@ -42,7 +42,7 @@ export async function POST(req) {
     const sheetId = ageCategoriesSheet.properties.sheetId;
 
     // Get all data from Age Categories sheet across all column ranges
-    const columnRanges = ["A:H", "J:Q", "S:Z", "AB:AI"];
+    const columnRanges = ["A:I", "K:S", "U:AC", "AE:AM"];
     let foundRow = null;
     let foundRange = null;
 
